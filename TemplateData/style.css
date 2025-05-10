@@ -3,6 +3,11 @@ body {
     margin: 0
 }
 
+#my-image {
+    position: absolute;
+    z-index: 100; /* 确保图片显示在 canvas 上方 */
+}
+
 #unity-container {
     position: absolute
 }
