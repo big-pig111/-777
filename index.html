@@ -41,7 +41,105 @@ var _hmt = _hmt || [];
       }
     }
   </script>
+  <style>
+  /* 钱包卡片样式变量 - 可根据需要调整 */
+  :root {
+    --wallet-card-width: 300px;      /* 卡片宽度 */
+    --wallet-card-padding: 16px;     /* 内边距 */
+    --wallet-card-radius: 12px;      /* 圆角半径 */
+    --wallet-card-icon-size: 32px;   /* 图标大小 */
+    --wallet-card-text-lg: 18px;     /* 大文本大小 */
+    --wallet-card-text-md: 14px;     /* 中等文本大小 */
+    --wallet-card-text-sm: 12px;     /* 小文本大小 */
+  }
   
+  /* 钱包卡片样式 */
+  .wallet-card {
+    position: fixed;
+    top: 4rem;
+    right: 1rem;
+    width: var(--wallet-card-width);
+    padding: var(--wallet-card-padding);
+    background-color: rgba(30, 41, 59, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--wallet-card-radius);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    z-index: 40;
+    display: none;
+    transition: all 0.3s ease;
+  }
+  
+  .wallet-card.visible {
+    display: block;
+  }
+  
+  .wallet-card-icon {
+    width: var(--wallet-card-icon-size);
+    height: var(--wallet-card-icon-size);
+    border-radius: 50%;
+    background-color: rgba(232, 131, 29, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .wallet-card-title {
+    font-size: var(--wallet-card-text-lg);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  .wallet-card-address {
+    font-size: var(--wallet-card-text-md);
+    font-weight: 500;
+  }
+  
+  .wallet-card-network {
+    font-size: var(--wallet-card-text-sm);
+    color: rgba(201, 205, 218, 0.8);
+  }
+  
+  .wallet-card-balance-label {
+    font-size: var(--wallet-card-text-sm);
+    color: rgba(201, 205, 218, 0.8);
+  }
+  
+  .wallet-card-balance-value {
+    font-size: var(--wallet-card-text-md);
+    font-weight: 500;
+  }
+</style>
+
+<!-- 钱包状态卡片 -->
+<div id="walletCard" class="wallet-card">
+  <div class="flex flex-col">
+    <div class="mb-4">
+      <h3 class="wallet-card-title">已连接钱包</h3>
+      <div class="flex items-center space-x-3">
+        <div class="wallet-card-icon">
+          <i class="fa fa-ethereum text-primary"></i>
+        </div>
+        <div>
+          <p id="connectedAddress" class="wallet-card-address">0x1234...abcd</p>
+          <p id="connectedNetwork" class="wallet-card-network">以太坊主网</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-gray-800 rounded-lg p-3 mb-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="wallet-card-balance-label">余额</p>
+        </div>
+        <p id="walletBalance" class="wallet-card-balance-value">0.00 ETH</p>
+      </div>
+    </div>
+    
+    <button id="disconnectBtn" class="w-full py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors">
+      <i class="fa fa-sign-out mr-1"></i> 断开连接
+    </button>
+  </div>
+</div>
   <style type="text/tailwindcss">
     @layer utilities {
       .content-auto {
