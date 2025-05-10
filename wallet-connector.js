@@ -289,3 +289,98 @@ class WalletConnector {
 
 // 导出模块
 export default WalletConnector;
+// 引入WalletConnector类
+import WalletConnector from './wallet-connector.js';
+
+// 初始化钱包连接器
+document.addEventListener('DOMContentLoaded', () => {
+  const walletConnector = new WalletConnector({
+    // 可以在这里自定义选项
+    onConnect: (account, network) => {
+      console.log('钱包连接成功:', account, network);
+      // 在这里可以添加连接成功后的逻辑
+    },
+    onDisconnect: () => {
+      console.log('钱包已断开连接');
+      // 在这里可以添加断开连接后的逻辑
+    },
+    onAccountChanged: (newAccount) => {
+      console.log('账户已切换:', newAccount);
+      // 在这里可以添加账户切换后的逻辑
+    },
+    onNetworkChanged: (newNetwork) => {
+      console.log('网络已切换:', newNetwork);
+      // 在这里可以添加网络切换后的逻辑
+    }
+  });
+  
+  // 模态框相关事件
+  const connectWalletBtn = document.getElementById('connectWalletBtn');
+  const walletModal = document.getElementById('walletModal');
+  const modalContent = document.getElementById('modalContent');
+  const modalOverlay = document.getElementById('modalOverlay');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  const metaMaskWalletBtn = document.getElementById('metaMaskWalletBtn');
+  
+  if (connectWalletBtn) {
+    connectWalletBtn.addEventListener('click', () => {
+      if (walletModal) walletModal.classList.remove('hidden');
+      if (document.body) document.body.style.overflow = 'hidden'; // 防止背景滚动
+      
+      // 添加动画效果
+      setTimeout(() => {
+        if (modalContent) modalContent.classList.remove('scale-95', 'opacity-0');
+        if (modalContent) modalContent.classList.add('scale-100', 'opacity-100');
+      }, 10);
+    });
+  }
+  
+  function closeWalletModal() {
+    if (modalContent) modalContent.classList.remove('scale-100', 'opacity-100');
+    if (modalContent) modalContent.classList.add('scale-95', 'opacity-0');
+    
+    setTimeout(() => {
+      if (walletModal) walletModal.classList.add('hidden');
+      if (document.body) document.body.style.overflow = ''; // 恢复背景滚动
+    }, 300);
+  }
+  
+  if (closeModalBtn) closeModalBtn.addEventListener('click', closeWalletModal);
+  if (modalOverlay) modalOverlay.addEventListener('click', closeWalletModal);
+  
+  // 键盘事件：ESC关闭模态框
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && walletModal && !walletModal.classList.contains('hidden')) {
+      closeWalletModal();
+    }
+  });
+  
+  // MetaMask按钮点击事件
+  if (metaMaskWalletBtn) {
+    metaMaskWalletBtn.addEventListener('click', () => {
+      walletConnector.connectWallet();
+      closeWalletModal();
+    });
+  }
+});
+// Tailwind 配置
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#'#F59E0B, // 替换为您网站的主色调
+          secondary: '##F59E0B', // 替换为您网站的辅助色
+          dark: '#1A1B26',
+          'dark-light': '#2A2C41',
+          'text-light': '#C9CDDA',
+          'grey-1': '#3A3C52'
+        },
+        fontFamily: {
+          // 替换为您网站使用的字体
+          inter: ['Inter', 'sans-serif'],
+        },
+      }
+    }
+  }
+</script>
