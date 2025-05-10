@@ -2,6 +2,58 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
   <head>
+	    <script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.57.0/lib/index.iife.min.js"></script>
+    <script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#8A7FF0',
+          secondary: '#AB9FF2',
+          dark: '#1A1B26',
+          'dark-light': '#2A2C41',
+          'text-light': '#FF4D4F',
+          'grey-1': '#3A3C52'
+        },
+        fontFamily: {
+          inter: ['Inter', 'sans-serif'],
+        },
+      }
+    }
+  }
+</script>
+    <style type="text/tailwindcss">
+  @layer utilities {
+    .content-auto {
+      content-visibility: auto;
+    }
+    .backdrop-blur-xl {
+      backdrop-filter: blur(20px);
+    }
+    .gradient-text {
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      background-image: linear-gradient(to right, #8A7FF0, #AB9FF2);
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    .animate-slide-up {
+      animation: slideUp 0.3s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  }
+</style>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>强风大背头切卷心菜</title>
@@ -132,5 +184,259 @@ var _hmt = _hmt || [];
       document.body.appendChild(script);
 
     </script>
+	  <script src="js/taiko.js"></script>
+    <!-- Wallet Connection Modal -->
+<div id="walletModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300" id="modalOverlay"></div>
+  <div class="relative bg-dark-light rounded-2xl w-full max-w-md border border-white/10 shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
+    <!-- Modal Header -->
+    <div class="px-6 py-4 border-b border-white/10 flex items-center justify-between">
+      <h3 class="text-xl font-bold">Connect Wallet</h3>
+      <button id="closeModalBtn" class="text-text-light hover:text-white transition-colors">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+    
+    <!-- Modal Content -->
+    <div class="p-6">
+      <p class="text-text-light mb-6">Select your wallet provider to connect to the Web3 application</p>
+      
+      <!-- Wallet Options -->
+      <div class="space-y-3">
+        <!-- Phantom Wallet Button -->
+        <div class="animate-fade-in" style="animation-delay: 0.1s">
+          <button id="phantomWalletBtn" class="inline-flex items-center gap-2 whitespace-nowrap text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow hover:bg-primary/90 bg-background-dark h-[50px] w-full justify-center rounded-2xl border border-grey-1 px-4 py-3 font-normal text-white">
+            Phantom
+          </button>
+        </div>
+        
+        <!-- Other Wallet Options -->
+        <div class="animate-fade-in" style="animation-delay: 0.2s">
+          <button class="w-full flex items-center justify-center p-4 rounded-xl border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all group">
+            <span class="font-medium">MetaMask</span>
+          </button>
+        </div>
+        
+        <div class="animate-fade-in" style="animation-delay: 0.3s">
+          <button class="w-full flex items-center justify-center p-4 rounded-xl border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all group">
+            <span class="font-medium">Coinbase Wallet</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Connection Instructions -->
+      <div class="mt-6 p-4 bg-dark rounded-lg border border-white/10 animate-slide-up">
+        <p class="text-xs text-text-light">
+          <i class="fa fa-info-circle text-primary mr-2"></i>
+          By connecting your wallet, you agree to our <a href="#" class="text-primary hover:underline">Terms of Service</a> and <a href="#" class="text-primary hover:underline">Privacy Policy</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Connected Wallet Info -->
+<div id="connectedWallet" class="fixed top-16 right-4 z-40 bg-dark-light rounded-xl p-4 border border-white/10 shadow-lg hidden animate-fade-in">
+  <div class="flex items-center space-x-3">
+    <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+      <i class="fa fa-wallet text-primary"></i>
+    </div>
+    <div>
+      <p class="font-medium text-white" id="walletAddress"></p>
+      <p class="text-xs text-text-light" id="walletBalance">Loading...</p>
+    </div>
+  </div>
+  <button id="disconnectBtn" class="mt-3 w-full px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors text-sm">
+    Disconnect
+  </button>
+</div>
+    <script>
+  // 全局变量
+  let wallet;
+  let publicKey;
+  let connection;
+  
+  // DOM元素
+  const connectWalletBtn = document.getElementById('connectWalletBtn');
+  const walletModal = document.getElementById('walletModal');
+  const modalContent = document.getElementById('modalContent');
+  const modalOverlay = document.getElementById('modalOverlay');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  const phantomWalletBtn = document.getElementById('phantomWalletBtn');
+  const walletStatus = document.getElementById('walletStatus');
+  const connectedWallet = document.getElementById('connectedWallet');
+  const walletAddress = document.getElementById('walletAddress');
+  const walletBalance = document.getElementById('walletBalance');
+  const disconnectBtn = document.getElementById('disconnectBtn');
+  
+  // 初始化Solana连接
+  async function initSolana() {
+    try {
+      // 检查浏览器是否安装了Solana钱包
+      if (!window.solana) {
+        throw new Error('未检测到Solana钱包插件');
+      }
+      
+      // 连接到Solana网络（使用devnet）
+      connection = new solanaWeb3.Connection(
+        solanaWeb3.clusterApiUrl('devnet'),
+        'confirmed'
+      );
+      
+      return true;
+    } catch (error) {
+      console.error('Solana初始化失败:', error);
+      alert(error.message);
+      return false;
+    }
+  }
+  
+  // 连接Phantom钱包
+  async function connectPhantomWallet() {
+    try {
+      // 初始化Solana
+      const isInitialized = await initSolana();
+      if (!isInitialized) return;
+      
+      // 检查是否安装了Phantom钱包
+      if (!window.solana.isPhantom) {
+        alert('请安装Phantom钱包插件');
+        window.open('https://phantom.app/', '_blank');
+        return;
+      }
+      
+      // 连接钱包
+      wallet = window.solana;
+      const response = await wallet.connect();
+      publicKey = response.publicKey;
+      
+      // 更新UI
+      updateWalletUI();
+      closeWalletModal();
+      
+      // 获取并显示余额
+      getWalletBalance();
+      
+      console.log('Phantom钱包连接成功:', publicKey.toBase58());
+    } catch (error) {
+      console.error('连接Phantom钱包失败:', error);
+      
+      // 处理用户拒绝连接的情况
+      if (error.message.includes('denied')) {
+        alert('您已拒绝连接请求');
+      } else {
+        alert('连接钱包时出错: ' + error.message);
+      }
+    }
+  }
+  
+  // 断开钱包连接
+  async function disconnectWallet() {
+    try {
+      if (wallet && wallet.disconnect) {
+        await wallet.disconnect();
+      }
+      
+      publicKey = null;
+      updateWalletUI();
+      console.log('钱包已断开连接');
+    } catch (error) {
+      console.error('断开连接失败:', error);
+      alert('断开连接时出错: ' + error.message);
+    }
+  }
+  
+  // 获取钱包余额
+  async function getWalletBalance() {
+    if (!publicKey || !connection) return;
+    
+    try {
+      const balance = await connection.getBalance(publicKey);
+      const solBalance = balance / solanaWeb3.LAMPORTS_PER_SOL;
+      
+      walletBalance.textContent = `余额: ${solBalance.toFixed(4)} SOL`;
+    } catch (error) {
+      console.error('获取余额失败:', error);
+      walletBalance.textContent = '无法获取余额';
+    }
+  }
+  
+  // 更新钱包UI
+  function updateWalletUI() {
+    if (publicKey) {
+      // 已连接
+      walletStatus.textContent = '已连接';
+      connectWalletBtn.classList.add('bg-primary/20', 'border-primary/30');
+      connectWalletBtn.classList.remove('bg-dark-light', 'border-white/10');
+      
+      // 显示截断的钱包地址
+      const address = publicKey.toBase58();
+      walletAddress.textContent = `${address.substring(0, 4)}...${address.substring(address.length - 4)}`;
+      
+      // 显示钱包信息
+      connectedWallet.classList.remove('hidden');
+    } else {
+      // 未连接
+      walletStatus.textContent = '连接钱包';
+      connectWalletBtn.classList.remove('bg-primary/20', 'border-primary/30');
+      connectWalletBtn.classList.add('bg-dark-light', 'border-white/10');
+      
+      // 隐藏钱包信息
+      connectedWallet.classList.add('hidden');
+    }
+  }
+  
+  // 打开钱包模态框
+  function openWalletModal() {
+    walletModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // 防止背景滚动
+    
+    // 添加动画效果
+    setTimeout(() => {
+      modalContent.classList.remove('scale-95', 'opacity-0');
+      modalContent.classList.add('scale-100', 'opacity-100');
+    }, 10);
+  }
+  
+  // 关闭钱包模态框
+  function closeWalletModal() {
+    modalContent.classList.remove('scale-100', 'opacity-100');
+    modalContent.classList.add('scale-95', 'opacity-0');
+    
+    setTimeout(() => {
+      walletModal.classList.add('hidden');
+      document.body.style.overflow = ''; // 恢复背景滚动
+    }, 300);
+  }
+  
+  // 初始化事件监听
+  document.addEventListener('DOMContentLoaded', () => {
+    // 模态框相关事件
+    connectWalletBtn.addEventListener('click', openWalletModal);
+    closeModalBtn.addEventListener('click', closeWalletModal);
+    modalOverlay.addEventListener('click', closeWalletModal);
+    
+    // 钱包连接按钮事件
+    phantomWalletBtn.addEventListener('click', connectPhantomWallet);
+    
+    // 断开连接按钮事件
+    disconnectBtn.addEventListener('click', disconnectWallet);
+    
+    // 检查是否已连接钱包
+    if (window.solana && window.solana.isPhantom && window.solana.publicKey) {
+      wallet = window.solana;
+      publicKey = window.solana.publicKey;
+      updateWalletUI();
+      getWalletBalance();
+    }
+    
+    // 键盘事件：ESC关闭模态框
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !walletModal.classList.contains('hidden')) {
+        closeWalletModal();
+      }
+    });
+  });
+</script>
   </body>
 </html>
