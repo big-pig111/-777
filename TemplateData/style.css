@@ -5,7 +5,7 @@ body {
 
 #my-image {
     position: absolute;
-    z-index: 100; /* 确保图片显示在 canvas 上方 */
+    z-index: 1000000000; /* 确保图片显示在 canvas 上方 */
 }
 
 #unity-container {
