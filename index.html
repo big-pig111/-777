@@ -2,6 +2,58 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
   <head>
+	  <script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.57.0/lib/index.iife.min.js"></script>
+	  <script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#8A7FF0',
+          secondary: '#AB9FF2',
+          dark: '#1A1B26',
+          'dark-light': '#2A2C41',
+          'text-light': '#C9CDDA',
+          'grey-1': '#3A3C52'
+        },
+        fontFamily: {
+          inter: ['Inter', 'sans-serif'],
+        },
+      }
+    }
+  }
+</script>
+	  <style type="text/tailwindcss">
+  @layer utilities {
+    .content-auto {
+      content-visibility: auto;
+    }
+    .backdrop-blur-xl {
+      backdrop-filter: blur(20px);
+    }
+    .gradient-text {
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      background-image: linear-gradient(to right, #8A7FF0, #AB9FF2);
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    .animate-slide-up {
+      animation: slideUp 0.3s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  }
+</style>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>强风大背头切卷心菜</title>
@@ -132,5 +184,265 @@ var _hmt = _hmt || [];
       document.body.appendChild(script);
 
     </script>
+	  <!-- 钱包连接模态框 -->
+<div id="walletModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300" id="modalOverlay"></div>
+  <div class="relative bg-dark-light rounded-2xl w-full max-w-md border border-white/10 shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
+    <!-- 模态框头部 -->
+    <div class="px-6 py-4 border-b border-white/10 flex items-center justify-between">
+      <h3 class="text-xl font-bold">连接钱包</h3>
+      <button id="closeModalBtn" class="text-text-light hover:text-white transition-colors">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+    
+    <!-- 模态框内容 -->
+    <div class="p-6">
+      <p class="text-text-light mb-6">选择您的钱包提供商连接到 Web3 应用</p>
+      
+      <!-- 钱包选项 -->
+      <div class="space-y-3">
+        <!-- Phantom钱包按钮 -->
+        <div class="animate-fade-in" style="animation-delay: 0.1s">
+          <button id="phantomWalletBtn" class="inline-flex items-center gap-2 whitespace-nowrap text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow hover:bg-primary/90 bg-background-dark h-[50px] w-full justify-start rounded-2xl border border-grey-1 px-4 py-3 font-normal text-white">
+            <img alt="Phantom" width="24" height="24" decoding="async" data-nimg="1" class="mr-3" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTA4IiBoZWlnaHQ9IjEwOCIgdmlld0JveD0iMCAwIDEwOCAxMDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDgiIGhlaWdodD0iMTA4IiByeD0iMjYiIGZpbGw9IiNBQjlGRjIiLz4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik00Ni41MjY3IDY5LjkyMjlDNDIuMDA1NCA3Ni44NTA5IDM0LjQyOTIgODUuNjE4MiAyNC4zNDggODUuNjE4MkMxOS41ODI0IDg1LjYxODIgMTUgODMuNjU2MyAxNSA3NS4xMzQyQzE1IDUzLjQzMDUgNDQuNjMyNiAxOS44MzI3IDcyLjEyNjggMTkuODMyN0M4Ny43NjggMTkuODMyNyA5NCAzMC42ODQ2IDk0IDQzLjAwNzlDOTQgNTguODI1OCA4My43MzU1IDc2LjkxMjIgNzMuNTMyMSA3Ni45MTIyQzcwLjI5MzkgNzYuOTEyMiA2OC43MDUzIDc1LjEzNDIgNjguNzA1MyA3Mi4zMTRDNjguNzA1MyA3MS41NzgzIDY4LjgyNzUgNzAuNzgxMiA2OS4wNzE5IDY5LjkyMjlDNjUuNTg5MyA3NS44Njk5IDU4Ljg2ODUgODEuMzg3OCA1Mi41NzU0IDgxLjM4NzhDNDcuOTkzIDgxLjM4NzggNDU1LjY3MTMgNzguNTA2MyA0NS42NzEzIDc0LjQ1OThDNDQuNjcyNyA3Mi45ODg0IDQ1Ljk3NjggNzEuNDU1NiA0Ni41MjY3IDY5LjkyMjlNzkzLjY3NjEgNDIuNTc5NEM4My42NzYxIDQ2LjE3MDQgODEuNTU3NSA0Ny45NjU4IDc5LjE4NzUgNDcuOTY1OEM3Ni43ODE2IDQ3Ljk2NTggNzQuNjk4OSA0Ni4xNzA0IDc0LjY5ODkgNDIuNTc5NEM3NC42OTg5IDM4Ljk4ODUgNzYuNzgxNiAzNy4xOTMxIDc5LjE4NzUgMzcuMTkzMUQ4MS41NTc1IDM3LjE5MzEgODMuNjc2MSAzOC45ODg1IDgzLjY3NjEgNDIuNTc5NE03MC4yMTAzIDQyLjU3OTVDNzAuMjEwMyA0Ni4xNzA0IDY4LjA5MTYgNDcuOTY1OCA2NS43MjE2IDQ3Ljk2NThDNjMuMzE1NyA0Ny45NjU4IDYxLjIzMyA0Ni4xNzA0IDYxLjIzMyA0Mi41Nzk1QzYxLjIzMyAzOC45ODg1IDYzLjMxNTcgMzcuMTkzMSA2NS43MjE2IDM3LjE5MzFDNjguMDkxNiAzNy4xOTMxIDcwLjIxMDMgMzguOTg4NSA3MC4yMTAzIDQyLjU3OTVaIiBmaWxsPSIjRkZGREY4Ii8+Cjwvc3ZnPgo=" style="color: transparent;">
+            Phantom
+          </button>
+        </div>
+        
+        <!-- 其他钱包选项 -->
+        <div class="animate-fade-in" style="animation-delay: 0.2s">
+          <button class="w-full flex items-center justify-between p-4 rounded-xl border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all group">
+            <div class="flex items-center">
+              <img src="https://picsum.photos/32/32?random=1" alt="MetaMask" class="w-8 h-8 mr-3 group-hover:scale-110 transition-transform" />
+              <span class="font-medium">MetaMask</span>
+            </div>
+            <i class="fa fa-arrow-right text-text-light"></i>
+          </button>
+        </div>
+        
+        <div class="animate-fade-in" style="animation-delay: 0.3s">
+          <button class="w-full flex items-center justify-between p-4 rounded-xl border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all group">
+            <div class="flex items-center">
+              <img src="https://picsum.photos/32/32?random=2" alt="Coinbase Wallet" class="w-8 h-8 mr-3 group-hover:scale-110 transition-transform" />
+              <span class="font-medium">Coinbase Wallet</span>
+            </div>
+            <i class="fa fa-arrow-right text-text-light"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- 连接说明 -->
+      <div class="mt-6 p-4 bg-dark rounded-lg border border-white/10 animate-slide-up">
+        <p class="text-xs text-text-light">
+          <i class="fa fa-info-circle text-primary mr-2"></i>
+          连接钱包即表示您同意我们的<a href="#" class="text-primary hover:underline">服务条款</a>和<a href="#" class="text-primary hover:underline">隐私政策</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 连接成功后显示的用户信息 -->
+<div id="connectedWallet" class="fixed top-16 right-4 z-40 bg-dark-light rounded-xl p-4 border border-white/10 shadow-lg hidden animate-fade-in">
+  <div class="flex items-center space-x-3">
+    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTA4IiBoZWlnaHQ9IjEwOCIgdmlld0JveD0iMCAwIDEwOCAxMDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDgiIGhlaWdodD0iMTA4IiByeD0iMjYiIGZpbGw9IiNBQjlGRjIiLz4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik00Ni41MjY3IDY5LjkyMjlDNDIuMDA1NCA3Ni44NTA5IDM0LjQyOTIgODUuNjE4MiAyNC4zNDggODUuNjE4MkMxOS41ODI0IDg1LjYxODIgMTUgODMuNjU2MyAxNSA3NS4xMzQyQzE1IDUzLjQzMDUgNDQuNjMyNiAxOS44MzI3IDcyLjEyNjggMTkuODMyN0M4Ny43NjggMTkuODMyNyA5NCAzMC42ODQ2IDk0IDQzLjAwNzlDOTQgNTguODI1OCA4My43MzU1IDc2LjkxMjIgNzMuNTMyMSA3Ni45MTIyQzcwLjI5MzkgNzYuOTEyMiA2OC43MDUzIDc1LjEzNDIgNjguNzA1MyA3Mi4zMTRDNjguNzA1MyA3MS41NzgzIDY4LjgyNzUgNzAuNzgxMiA2OS4wNzE5IDY5LjkyMjlDNjUuNTg5MyA3NS44Njk5IDU4Ljg2ODUgODEuMzg3OCA1Mi41NzU0IDgxLjM4NzhDNDcuOTkzIDgxLjM4NzggNDU1LjY3MTMgNzguNTA2MyA0NS42NzEzIDc0LjQ1OThDNDQuNjcyNyA3Mi45ODg0IDQ1Ljk3NjggNzEuNDU1NiA0Ni41MjY3IDY5LjkyMjlNzkzLjY3NjEgNDIuNTc5NEM4My42NzYxIDQ2LjE3MDQgODEuNTU3NSA0Ny45NjU4IDc5LjE4NzUgNDcuOTY1OEM3Ni43ODE2IDQ3Ljk2NTggNzQuNjk4OSA0Ni4xNzA0IDc0LjY5ODkgNDIuNTc5NEM3NC42OTg5IDM4Ljk4ODUgNzYuNzgxNiAzNy4xOTMxIDc5LjE4NzUgMzcuMTkzMUQ4MS41NTc1IDM3LjE5MzEgODMuNjc2MSAzOC45ODg1IDgzLjY3NjEgNDIuNTc5NE03MC4yMTAzIDQyLjU3OTVDNzAuMjEwMyA0Ni4xNzA0IDY4LjA5MTYgNDcuOTY1OCA2NS43MjE2IDQ3Ljk2NThDNjMuMzE1NyA0Ny45NjU4IDYxLjIzMyA0Ni4xNzA0IDYxLjIzMyA0Mi41Nzk1QzYxLjIzMyAzOC45ODg1IDYzLjMxNTcgMzcuMTkzMSA2NS43MjE2IDM3LjE5MzFDNjguMDkxNiAzNy4xOTMxIDcwLjIxMDMgMzguOTg4NSA3MC4yMTAzIDQyLjU3OTVaIiBmaWxsPSIjRkZGREY4Ii8+Cjwvc3ZnPgo=" alt="Phantom" class="w-8 h-8 rounded-full" />
+    <div>
+      <p class="font-medium text-white" id="walletAddress"></p>
+      <p class="text-xs text-text-light" id="walletBalance">加载中...</p>
+    </div>
+  </div>
+  <button id="disconnectBtn" class="mt-3 w-full px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors text-sm">
+    断开连接
+  </button>
+</div>
+	  <script>
+  // 全局变量
+  let wallet;
+  let publicKey;
+  let connection;
+  
+  // DOM元素
+  const connectWalletBtn = document.getElementById('connectWalletBtn');
+  const walletModal = document.getElementById('walletModal');
+  const modalContent = document.getElementById('modalContent');
+  const modalOverlay = document.getElementById('modalOverlay');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  const phantomWalletBtn = document.getElementById('phantomWalletBtn');
+  const walletStatus = document.getElementById('walletStatus');
+  const connectedWallet = document.getElementById('connectedWallet');
+  const walletAddress = document.getElementById('walletAddress');
+  const walletBalance = document.getElementById('walletBalance');
+  const disconnectBtn = document.getElementById('disconnectBtn');
+  
+  // 初始化Solana连接
+  async function initSolana() {
+    try {
+      // 检查浏览器是否安装了Solana钱包
+      if (!window.solana) {
+        throw new Error('未检测到Solana钱包插件');
+      }
+      
+      // 连接到Solana网络（使用devnet）
+      connection = new solanaWeb3.Connection(
+        solanaWeb3.clusterApiUrl('devnet'),
+        'confirmed'
+      );
+      
+      return true;
+    } catch (error) {
+      console.error('Solana初始化失败:', error);
+      alert(error.message);
+      return false;
+    }
+  }
+  
+  // 连接Phantom钱包
+  async function connectPhantomWallet() {
+    try {
+      // 初始化Solana
+      const isInitialized = await initSolana();
+      if (!isInitialized) return;
+      
+      // 检查是否安装了Phantom钱包
+      if (!window.solana.isPhantom) {
+        alert('请安装Phantom钱包插件');
+        window.open('https://phantom.app/', '_blank');
+        return;
+      }
+      
+      // 连接钱包
+      wallet = window.solana;
+      const response = await wallet.connect();
+      publicKey = response.publicKey;
+      
+      // 更新UI
+      updateWalletUI();
+      closeWalletModal();
+      
+      // 获取并显示余额
+      getWalletBalance();
+      
+      console.log('Phantom钱包连接成功:', publicKey.toBase58());
+    } catch (error) {
+      console.error('连接Phantom钱包失败:', error);
+      
+      // 处理用户拒绝连接的情况
+      if (error.message.includes('denied')) {
+        alert('您已拒绝连接请求');
+      } else {
+        alert('连接钱包时出错: ' + error.message);
+      }
+    }
+  }
+  
+  // 断开钱包连接
+  async function disconnectWallet() {
+    try {
+      if (wallet && wallet.disconnect) {
+        await wallet.disconnect();
+      }
+      
+      publicKey = null;
+      updateWalletUI();
+      console.log('钱包已断开连接');
+    } catch (error) {
+      console.error('断开连接失败:', error);
+      alert('断开连接时出错: ' + error.message);
+    }
+  }
+  
+  // 获取钱包余额
+  async function getWalletBalance() {
+    if (!publicKey || !connection) return;
+    
+    try {
+      const balance = await connection.getBalance(publicKey);
+      const solBalance = balance / solanaWeb3.LAMPORTS_PER_SOL;
+      
+      walletBalance.textContent = `余额: ${solBalance.toFixed(4)} SOL`;
+    } catch (error) {
+      console.error('获取余额失败:', error);
+      walletBalance.textContent = '无法获取余额';
+    }
+  }
+  
+  // 更新钱包UI
+  function updateWalletUI() {
+    if (publicKey) {
+      // 已连接
+      walletStatus.textContent = '已连接';
+      connectWalletBtn.classList.add('bg-primary/20', 'border-primary/30');
+      connectWalletBtn.classList.remove('bg-dark-light', 'border-white/10');
+      
+      // 显示截断的钱包地址
+      const address = publicKey.toBase58();
+      walletAddress.textContent = `${address.substring(0, 4)}...${address.substring(address.length - 4)}`;
+      
+      // 显示钱包信息
+      connectedWallet.classList.remove('hidden');
+    } else {
+      // 未连接
+      walletStatus.textContent = '连接钱包';
+      connectWalletBtn.classList.remove('bg-primary/20', 'border-primary/30');
+      connectWalletBtn.classList.add('bg-dark-light', 'border-white/10');
+      
+      // 隐藏钱包信息
+      connectedWallet.classList.add('hidden');
+    }
+  }
+  
+  // 打开钱包模态框
+  function openWalletModal() {
+    walletModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // 防止背景滚动
+    
+    // 添加动画效果
+    setTimeout(() => {
+      modalContent.classList.remove('scale-95', 'opacity-0');
+      modalContent.classList.add('scale-100', 'opacity-100');
+    }, 10);
+  }
+  
+  // 关闭钱包模态框
+  function closeWalletModal() {
+    modalContent.classList.remove('scale-100', 'opacity-100');
+    modalContent.classList.add('scale-95', 'opacity-0');
+    
+    setTimeout(() => {
+      walletModal.classList.add('hidden');
+      document.body.style.overflow = ''; // 恢复背景滚动
+    }, 300);
+  }
+  
+  // 初始化事件监听
+  document.addEventListener('DOMContentLoaded', () => {
+    // 模态框相关事件
+    connectWalletBtn.addEventListener('click', openWalletModal);
+    closeModalBtn.addEventListener('click', closeWalletModal);
+    modalOverlay.addEventListener('click', closeWalletModal);
+    
+    // 钱包连接按钮事件
+    phantomWalletBtn.addEventListener('click', connectPhantomWallet);
+    
+    // 断开连接按钮事件
+    disconnectBtn.addEventListener('click', disconnectWallet);
+    
+    // 检查是否已连接钱包
+    if (window.solana && window.solana.isPhantom && window.solana.publicKey) {
+      wallet = window.solana;
+      publicKey = window.solana.publicKey;
+      updateWalletUI();
+      getWalletBalance();
+    }
+    
+    // 键盘事件：ESC关闭模态框
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !walletModal.classList.contains('hidden')) {
+        closeWalletModal();
+      }
+    });
+  });
+</script>
   </body>
 </html>
