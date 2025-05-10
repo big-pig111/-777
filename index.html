@@ -136,5 +136,86 @@ var _hmt = _hmt || [];
       document.body.appendChild(script);
 
     </script>
+	  <!-- 右上角钱包按钮 -->
+<button id="connectWalletBtn" class="flex items-center space-x-2 bg-primary hover:bg-primary/90 px-4 py-2 rounded-full border border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/20 transform hover:scale-105">
+  <i class="fa fa-wallet text-white"></i>
+  <span>连接钱包</span>
+</button>
+
+<!-- 钱包状态卡片 -->
+<div id="walletCard" class="max-w-3xl mx-auto bg-dark-light rounded-2xl p-6 border border-white/10 mb-10 hidden animate-slide-up">
+  <div class="flex flex-col md:flex-row items-center justify-between">
+    <div class="mb-4 md:mb-0">
+      <h3 class="text-xl font-semibold mb-2">已连接钱包</h3>
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+          <i class="fa fa-ethereum text-primary"></i>
+        </div>
+        <div>
+          <p class="font-medium" id="connectedAddress">0x1234...abcd</p>
+          <p class="text-sm text-text-light" id="connectedNetwork">以太坊主网</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="w-full md:w-auto flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3 mt-4 md:mt-0">
+      <div class="bg-dark rounded-lg p-3 w-full sm:w-auto flex items-center space-x-2">
+        <i class="fa fa-balance-scale text-primary"></i>
+        <div>
+          <p class="text-xs text-text-light">余额</p>
+          <p class="font-medium" id="walletBalance">0.00 ETH</p>
+        </div>
+      </div>
+      
+      <button id="disconnectBtn" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 px-4 py-2 rounded-lg transition-colors transform hover:scale-105">
+        <i class="fa fa-sign-out mr-1"></i> 断开连接
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 钱包连接模态框 -->
+<div id="walletModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300" id="modalOverlay"></div>
+  <div class="relative bg-dark-light rounded-2xl w-full max-w-md border border-primary/30 shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
+    <!-- 模态框头部 -->
+    <div class="px-6 py-4 border-b border-primary/20 flex items-center justify-between">
+      <h3 class="text-xl font-bold text-primary">连接钱包</h3>
+      <button id="closeModalBtn" class="text-text-light hover:text-primary transition-colors">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+    
+    <!-- 模态框内容 -->
+    <div class="p-6">
+      <p class="text-text-light mb-6">选择您的钱包提供商连接到您的网站</p>
+      
+      <!-- 钱包选项 -->
+      <div class="space-y-3">
+        <!-- MetaMask钱包按钮 -->
+        <button id="metaMaskWalletBtn" class="w-full h-[50px] flex items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 hover:bg-primary/20 text-white transition-all transform hover:scale-[1.02]">
+          MetaMask
+        </button>
+        
+        <!-- 其他钱包按钮 -->
+        <button class="w-full h-[50px] flex items-center justify-center rounded-2xl border border-secondary/30 bg-secondary/10 hover:bg-secondary/20 text-white transition-all transform hover:scale-[1.02]">
+          Coinbase Wallet
+        </button>
+        
+        <button class="w-full h-[50px] flex items-center justify-center rounded-2xl border border-white/10 hover:border-white/30 hover:bg-white/5 transition-all transform hover:scale-[1.02]">
+          WalletConnect
+        </button>
+      </div>
+      
+      <!-- 连接说明 -->
+      <div class="mt-6 p-4 bg-dark rounded-lg border border-primary/20 animate-slide-up">
+        <p class="text-xs text-text-light">
+          <i class="fa fa-info-circle text-primary mr-2"></i>
+          连接钱包即表示您同意我们的<a href="#" class="text-primary hover:underline">服务条款</a>和<a href="#" class="text-primary hover:underline">隐私政策</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
   </body>
 </html>
