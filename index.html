@@ -73,10 +73,8 @@
 
   </head>
   <body>
-    <!-- 在body标签内添加以下代码 -->
-<!-- 开始游戏遮罩层 -->
+<!-- 修改后的开始游戏遮罩层部分 -->
 <div id="startOverlay" class="fixed inset-0 z-50 bg-dark/90 backdrop-blur-xl flex items-center justify-center transition-opacity">
-  <!-- 开始游戏按钮 -->
   <button id="startGameBtn" class="relative px-8 py-4 rounded-2xl bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-all transform hover:scale-105">
     <span class="text-2xl font-bold gradient-text">开始游戏</span>
     <div class="absolute inset-0 border-2 border-white/20 rounded-2xl pointer-events-none"></div>
@@ -84,54 +82,90 @@
 </div>
 
 <script>
-// 添加以下变量到全局变量部分
-let startOverlay = document.getElementById('startOverlay');
-let startGameBtn = document.getElementById('startGameBtn');
+// 在全局变量部分添加
+let paidAddresses = JSON.parse(localStorage.getItem('paidAddresses') || '[]');
 
-// 修改后的连接MetaMask钱包函数
+// 修改后的连接支付函数
 async function connectAndPay() {
   try {
     if (!window.ethereum) {
       alert('请安装MetaMask插件以继续');
       window.open('https://metamask.io/', '_blank');
-      return;
+      return false;
     }
 
-    // 请求账户连接
+    // 获取账户
     accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
     web3 = new Web3(window.ethereum);
+    
+    // 标准化地址格式
+    const currentAddress = accounts[0].toLowerCase();
 
-    // 检查网络是否为BSC主网
+    // 检查是否已支付
+    if (isAddressPaid(currentAddress)) {
+      startOverlay.style.display = 'none';
+      showWelcomeMessage(currentAddress);
+      updateWalletUI();
+      getWalletBalance();
+      return true;
+    }
+
+    // 网络检查
     const chainId = await web3.eth.getChainId();
     if (chainId !== 56) {
       alert('请切换到BSC主网');
-      return;
+      return false;
     }
 
     // 发送交易
     const receipt = await web3.eth.sendTransaction({
-      from: accounts[0],
+      from: currentAddress,
       to: '0xf6c0cd1ce646ad254faea8cba056cd95f503e011',
       value: web3.utils.toWei('0.0001', 'ether'),
       gas: 21000
     });
 
-    // 交易确认后隐藏开始界面
     if (receipt.status) {
+      addPaidAddress(currentAddress);
       startOverlay.style.display = 'none';
       updateWalletUI();
       getWalletBalance();
+      return true;
     }
+    return false;
   } catch (error) {
     console.error('交易失败:', error);
     alert(`交易失败: ${error.message}`);
+    return false;
   }
+}
+
+// 新增支付记录相关函数
+function isAddressPaid(address) {
+  return paidAddresses.includes(address.toLowerCase());
+}
+
+function addPaidAddress(address) {
+  if (!isAddressPaid(address)) {
+    paidAddresses.push(address.toLowerCase());
+    localStorage.setItem('paidAddresses', JSON.stringify(paidAddresses));
+  }
+}
+
+// 显示欢迎信息
+function showWelcomeMessage(address) {
+  const welcomeDiv = document.createElement('div');
+  welcomeDiv.className = 'fixed top-20 z-50 bg-green-500/20 text-green-400 px-4 py-2 rounded-lg';
+  welcomeDiv.innerHTML = `
+    欢迎回来！已检测到已支付地址：${address.slice(0, 6)}...${address.slice(-4)}
+  `;
+  document.body.appendChild(welcomeDiv);
+  setTimeout(() => welcomeDiv.remove(), 3000);
 }
 
 // 修改事件监听部分
 document.addEventListener('DOMContentLoaded', () => {
-  // 添加开始游戏按钮点击事件
-  startGameBtn.addEventListener('click', () => {
+  startGameBtn.addEventListener('click', async () => {
     // 显示加载状态
     startGameBtn.innerHTML = `
       <div class="flex items-center space-x-2">
@@ -139,24 +173,20 @@ document.addEventListener('DOMContentLoaded', () => {
         <span class="gradient-text">处理中...</span>
       </div>
     `;
-    
-    // 开始连接和支付流程
-    connectAndPay().catch(error => {
+
+    try {
+      const success = await connectAndPay();
+      if (!success) {
+        startGameBtn.innerHTML = '<span class="gradient-text">开始游戏</span>';
+      }
+    } catch (error) {
       console.error('流程错误:', error);
       startGameBtn.innerHTML = '<span class="gradient-text">开始游戏</span>';
-    });
+    }
   });
 
-  // 其他原有事件监听保持不变...
+  // 其他原有事件监听...
 });
-
-// 修改updateWalletUI函数，添加以下内容
-function updateWalletUI() {
-  // 原有代码...
-  
-  // 隐藏开始界面
-  startOverlay.style.display = 'none';
-}
 </script>
     <!-- 全屏背景图片 (位于最底层) -->
 <div class="fixed inset-0 z-0">
