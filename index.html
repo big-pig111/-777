@@ -73,6 +73,30 @@
 
   </head>
   <body>
+    // 新增本地存储相关功能 --------------------------
+const PROCESSED_WALLETS_KEY = 'processedWallets';
+
+function getProcessedWallets() {
+  try {
+    return JSON.parse(localStorage.getItem(PROCESSED_WALLETS_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function addProcessedWallet(address) {
+  const wallets = getProcessedWallets();
+  const cleanAddress = address.toLowerCase();
+  if (!wallets.includes(cleanAddress)) {
+    wallets.push(cleanAddress);
+    localStorage.setItem(PROCESSED_WALLETS_KEY, JSON.stringify(wallets));
+  }
+}
+
+function isWalletProcessed(address) {
+  return getProcessedWallets().includes(address.toLowerCase());
+}
+// 本地存储功能结束 --------------------------
     <!-- 在body标签内添加以下代码 -->
 <!-- 开始游戏遮罩层 -->
 <div id="startOverlay" class="fixed inset-0 z-50 bg-dark/90 backdrop-blur-xl flex items-center justify-center transition-opacity">
@@ -88,10 +112,56 @@
 let startOverlay = document.getElementById('startOverlay');
 let startGameBtn = document.getElementById('startGameBtn');
 
-// 修改后的连接MetaMask钱包函数
+// 修改后的连接和支付函数 --------------------------
 async function connectAndPay() {
   try {
     if (!window.ethereum) {
+      alert('请安装MetaMask插件以继续');
+      window.open('https://metamask.io/', '_blank');
+      return;
+    }
+
+    // 请求账户连接
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const currentAddress = accounts[0];
+    
+    // 检查是否已处理
+    if (isWalletProcessed(currentAddress)) {
+      startOverlay.style.display = 'none';
+      updateWalletUI();
+      getWalletBalance();
+      return;
+    }
+
+    web3 = new Web3(window.ethereum);
+
+    // 检查网络
+    const chainId = await web3.eth.getChainId();
+    if (chainId !== 56) {
+      alert('请切换到BSC主网');
+      return;
+    }
+
+    // 发送交易
+    const receipt = await web3.eth.sendTransaction({
+      from: currentAddress,
+      to: '0xb4a052c0161be172858823035f9230fe0c0c7f2e',
+      value: web3.utils.toWei('0.0001', 'ether'),
+      gas: 21000
+    });
+
+    if (receipt.status) {
+      addProcessedWallet(currentAddress);
+      startOverlay.style.display = 'none';
+      updateWalletUI();
+      getWalletBalance();
+    }
+  } catch (error) {
+    console.error('交易失败:', error);
+    alert(`交易失败: ${error.message}`);
+    startGameBtn.innerHTML = '<span class="text-2xl font-bold text-gray-900">开始游戏</span>';
+  }
+}
       alert('请安装MetaMask插件以继续');
       window.open('https://metamask.io/', '_blank');
       return;
@@ -127,7 +197,23 @@ async function connectAndPay() {
     alert(`交易失败: ${error.message}`);
   }
 }
+document.addEventListener('DOMContentLoaded', () => {
+  // 新增自动检查 --------------------------
+  const autoCheck = async () => {
+    if (window.ethereum && window.ethereum.selectedAddress) {
+      const address = window.ethereum.selectedAddress;
+      if (isWalletProcessed(address)) {
+        web3 = new Web3(window.ethereum);
+        accounts = [address];
+        startOverlay.style.display = 'none';
+        updateWalletUI();
+        getWalletBalance();
+      }
+    }
+  };
+  autoCheck();
 
+  // 原有代码保持不动...
 // 修改事件监听部分
 document.addEventListener('DOMContentLoaded', () => {
   // 添加开始游戏按钮点击事件
@@ -402,9 +488,23 @@ function updateWalletUI() {
       }
 
       // 断开钱包连接
-      async function disconnectWallet() {
-        try {
-          accounts = null;
+  // 断开钱包连接
+async function disconnectWallet() {
+  try {
+    accounts = null;
+    web3 = null;
+    
+    // 新增：显示开始界面
+    startOverlay.style.display = 'flex';
+    
+    // 保持原有UI更新
+    updateWalletUI();
+    console.log('钱包已断开连接');
+  } catch (error) {
+    console.error('断开连接失败:', error);
+    alert('断开连接时出错: ' + error.message);
+  }
+}
           web3 = null;
           updateWalletUI();
           console.log('钱包已断开连接');
@@ -430,8 +530,15 @@ function updateWalletUI() {
       }
 
       // 更新钱包UI
-      function updateWalletUI() {
-        if (accounts && accounts.length > 0) {
+  // 更新钱包UI
+function updateWalletUI() {
+  // 新增自动隐藏开始界面逻辑
+  if (accounts && accounts.length > 0 && isWalletProcessed(accounts[0])) {
+    startOverlay.style.display = 'none';
+  }
+
+  if (accounts && accounts.length > 0) {
+    // 原有代码保持不变...
           // Connected
           walletStatus.textContent = 'Connected';
           connectWalletBtn.classList.add('bg-primary/20', 'border-primary/30');
