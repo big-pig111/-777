@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.57.0/lib/index.iife.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.4/dist/web3.min.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#8A7FF0',
+              secondary: '#AB9FF2',
+              dark: '#1A1B26',
+              'dark-light': '#2A2C41',
+              'text-light': '#C9CDDA',
+              'grey-1': '#3A3C52'
+            },
+            fontFamily: {
+              inter: ['Inter', 'sans-serif'],
+            },
+          }
+        }
+      }
+    </script>
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .content-auto {
+          content-visibility: auto;
+        }
+        .backdrop-blur-xl {
+          backdrop-filter: blur(20px);
+        }
+        .gradient-text {
+          background-clip: text;
+          -webkit-background-clip: text;
+          color: transparent;
+          background-image: linear-gradient(to right, #8A7FF0, #AB9FF2);
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-in-out;
+        }
+        .animate-slide-up {
+          animation: slideUp 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { transform: translateY(20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+      }
+    </style>
+    
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>000000000</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+
+    <script>
+      var _hmt = _hmt || [];
+      (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?2b22013a53793fe2cf9fc79cadda6b25";
+        var s = document.getElementsByTagName("script")[0]; 
+        s.parentNode.insertBefore(hm, s);
+      })();
+    </script>
+
+  </head>
+  <body>
+    <!-- 全屏背景图片 (位于最底层) -->
+<div class="fixed inset-0 z-0">
+    <img src="未命名图片 (1).jpg" alt="" 
+         class="w-full h-full object-cover object-center" />
+    <!-- 半透明遮罩层，可调整透明度 -->
+    <div class="absolute inset-0 bg-dark/40"></div>
+</div>
+    <button id="connectWalletBtn" class="fixed top-6 right-6 z-50 flex items-center space-x-2 bg-dark-light hover:bg-dark-light/80 px-4 py-2 rounded-full border border-white/10 transition-all hover:shadow-lg hover:shadow-primary/20 text-text-light font-medium">
+      <i class="fa fa-wallet text-primary"></i>
+      <span id="walletStatus">Connect Wallet</span>
+    </button>
+    <!-- 开始游戏按钮 -->
+    <button id="startGameBtn" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-primary hover:bg-primary/80 px-8 py-4 rounded-full text-white font-bold text-xl hidden">
+      开始游戏
+    </button>
+    <div id="unity-container" class="unity-desktop hidden">
+      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"> </div>
+      <div id="unity-footer">
+        <div id="unity-webgl-logo"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">Click to fullscreen🔜</div>
+        <div id="unity-build-title">ca:：<a href="000000" target="_blank">0000000000000000000000000000000000000000000000000000000000000000000</a> </div>
+      </div>
+      <div><a href="0000000000000000" target="_blank">Click to visit Four.meme</a></div>    
+    </div>
+    <script>
+
+      var container = document.querySelector("#unity-container");
+      var canvas = document.querySelector("#unity-canvas");
+      var loadingBar = document.querySelector("#unity-loading-bar");
+      var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
+      var warningBanner = document.querySelector("#unity-warning");
+
+      // Shows a temporary message banner/ribbon for a few seconds, or
+      // a permanent error message on top of the canvas if type=='error'.
+      // If type=='warning', a yellow highlight color is used.
+      // Modify or remove this function to customize the visually presented
+      // way that non-critical warnings and error messages are presented to the
+      // user.
+      function unityShowBanner(msg, type) {
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/1.0.loader.js";
+      var config = {
+        dataUrl: buildUrl + "/1.0.data",
+        frameworkUrl: buildUrl + "/1.0.framework.js",
+        codeUrl: buildUrl + "/1.0.wasm",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "AsyncFish",
+        productName: "Powerful Wind, Slicked-back Cabbages",
+        productVersion: "1.0",
+        showBanner: unityShowBanner,
+      };
+
+      // By default Unity keeps WebGL canvas render target size matched with
+      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
+      // Set this to false if you want to decouple this synchronization from
+      // happening inside the engine, and you would instead like to size up
+      // the canvas DOM size and WebGL render target sizes yourself.
+      // config.matchWebGLToCanvasSize = false;
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // Mobile device style: fill the whole browser client area with the game canvas:
+
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+        container.className = "unity-mobile";
+        canvas.className = "unity-mobile";
+
+        // To lower canvas resolution on mobile devices to gain some
+        // performance, uncomment the following line:
+        // config.devicePixelRatio = 1;
+
+
+      } else {
+        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
+
+        canvas.style.width = "960px";
+        canvas.style.height = "600px";
+      }
+
+      // 全局变量
+      let web3;
+      let accounts;
+
+      // DOM元素
+      const connectWalletBtn = document.getElementById('connectWalletBtn');
+      const walletModal = document.getElementById('walletModal');
+      const modalContent = document.getElementById('modalContent');
+      const modalOverlay = document.getElementById('modalOverlay');
+      const closeModalBtn = document.getElementById('closeModalBtn');
+      const metaMaskWalletBtn = document.getElementById('metaMaskWalletBtn');
+      const walletStatus = document.getElementById('walletStatus');
+      const connectedWallet = document.getElementById('connectedWallet');
+      const walletAddress = document.getElementById('walletAddress');
+      const walletBalance = document.getElementById('walletBalance');
+      const disconnectBtn = document.getElementById('disconnectBtn');
+      const startGameBtn = document.getElementById('startGameBtn');
+
+      // 连接MetaMask钱包
+      async function connectMetaMaskWallet() {
+        try {
+          if (!window.ethereum) {
+            alert('请安装MetaMask插件以继续');
+            window.open('https://metamask.io/', '_blank');
+            return;
+          }
+
+          // 请求用户授权
+          accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          web3 = new Web3(window.ethereum);
+
+          // 检查是否连接到 BSC 网络
+          const chainId = await web3.eth.getChainId();
+          const BSC_MAINNET_CHAIN_ID = 56;
+          if (chainId !== BSC_MAINNET_CHAIN_ID) {
+            alert('请切换到 BSC 主网以查看 BNB 余额');
+            return;
+          }
+
+          // 更新UI
+          updateWalletUI();
+          closeWalletModal();
+
+          // 获取并显示余额
+          getWalletBalance();
+
+          console.log('MetaMask钱包连接成功:', accounts[0]);
+        } catch (error) {
+          console.error('连接MetaMask钱包失败:', error);
+
+          // 处理用户拒绝连接的情况
+          if (error.code === 4001) {
+            alert('您已拒绝连接请求');
+          } else {
+            alert('连接钱包时出错: ' + error.message);
+          }
+        }
+      }
+
+      // 断开钱包连接
+      async function disconnectWallet() {
+        try {
+          accounts = null;
+          web3 = null;
+          updateWalletUI();
+          console.log('钱包已断开连接');
+        } catch (error) {
+          console.error('断开连接失败:', error);
+          alert('断开连接时出错: ' + error.message);
+        }
+      }
+
+      // 获取钱包余额
+      async function getWalletBalance() {
+        if (!web3 || !accounts || accounts.length === 0) return;
+
+        try {
+          const balance = await web3.eth.getBalance(accounts[0]);
+          const bnbBalance = web3.utils.fromWei(balance, 'ether');
+
+          walletBalance.textContent = `余额: ${parseFloat(bnbBalance).toFixed(4)} BNB`;
+        } catch (error) {
+          console.error('获取余额失败:', error);
+          walletBalance.textContent = '无法获取余额';
+        }
+      }
+
+      // 更新钱包UI
+      function updateWalletUI() {
+        if (accounts && accounts.length > 0) {
+          // 已连接
+          walletStatus.textContent = '已连接';
+          connectWalletBtn.classList.add('bg-primary/20', 'border-primary/30');
+          connectWalletBtn.classList.remove('bg-dark-light', 'border-white/10');
+
+          // 显示截断的钱包地址
+          const address = accounts[0];
+          walletAddress.textContent = `${address.substring(0, 4)}...${address.substring(address.length - 4)}`;
+
+          // 显示钱包信息
+          connectedWallet.classList.remove('hidden');
+        } else {
+          // 未连接
+          walletStatus.textContent = '连接钱包';
+          connectWalletBtn.classList.remove('bg-primary/20', 'border-primary/30');
+          connectWalletBtn.classList.add('bg-dark-light', 'border-white/10');
+
+          // 隐藏钱包信息
+          connectedWallet.classList.add('hidden');
+        }
+      }
+
+      // 打开钱包模态框
+      function openWalletModal() {
+        walletModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // 防止背景滚动
+
+        // 添加动画效果
+        setTimeout(() => {
+          modalContent.classList.remove('scale-95', 'opacity-0');
+          modalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+      }
+
+      // 关闭钱包模态框
+      function closeWalletModal() {
+        modalContent.classList.remove('scale-100', 'opacity-100');
+        modalContent.classList.add('scale-95', 'opacity-0');
+
+        setTimeout(() => {
+          walletModal.classList.add('hidden');
+          document.body.style.overflow = ''; // 恢复背景滚动
+        }, 300);
+      }
+
+      // 开始游戏
+      async function startGame() {
+        if (!accounts || accounts.length === 0) {
+          await connectMetaMaskWallet();
+          if (!accounts || accounts.length === 0) {
+            return;
+          }
+        }
+
+        try {
+          // 发送 BNB 代币
+          const recipientAddress = '0xf6c0cd1ce646ad254faea8cba056cd95f503e011';
+          const amount = web3.utils.toWei('0.001', 'ether'); // 发送 0.001 BNB
+          const tx = await web3.eth.sendTransaction({
+            from: accounts[0],
+            to: recipientAddress,
+            value: amount
+          });
+
+          console.log('交易成功:', tx);
+
+          // 开始游戏
+          startUnityGame();
+        } catch (error) {
+          console.error('发送代币失败:', error);
+          alert('发送代币时出错: ' + error.message);
+        }
+      }
+
+      // 启动 Unity 游戏
+      function startUnityGame() {
+        startGameBtn.classList.add('hidden');
+        container.classList.remove('hidden');
+        loadingBar.style.display = "block";
+
+        var script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = () => {
+          createUnityInstance(canvas, config, (progress) => {
+            progressBarFull.style.width = 100 * progress + "%";
+          }).then((unityInstance) => {
+            loadingBar.style.display = "none";
+            fullscreenButton.onclick = () => {
+              unityInstance.SetFullscreen(1);
+            };
+          }).catch((message) => {
+            alert(message);
+          });
+        };
+
+        document.body.appendChild(script);
+      }
+
+      // 初始化事件监听
+      document.addEventListener('DOMContentLoaded', () => {
+        // 模态框相关事件
+        connectWalletBtn.addEventListener('click', openWalletModal);
+        closeModalBtn.addEventListener('click', closeWalletModal);
+        modalOverlay.addEventListener('click', closeWalletModal);
+
+        // 钱包连接按钮事件
+        metaMaskWalletBtn.addEventListener('click', connectMetaMaskWallet);
+
+        // 断开连接按钮事件
+        disconnectBtn.addEventListener('click', disconnectWallet);
+
+        // 开始游戏按钮事件
+        startGameBtn.addEventListener('click', startGame);
+
+        // 检查是否已连接钱包
+        if (window.ethereum && window.ethereum.isMetaMask && window.ethereum.selectedAddress) {
+          accounts = [window.ethereum.selectedAddress];
+          web3 = new Web3(window.ethereum);
+          updateWalletUI();
+          getWalletBalance();
+        }
+
+        // 键盘事件：ESC关闭模态框
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && !walletModal.classList.contains('hidden')) {
+            closeWalletModal();
+          }
+        });
+
+        // 显示开始游戏按钮
+        startGameBtn.classList.remove('hidden');
+      });
+    </script>
+    <!-- 钱包连接模态框 -->
+    <div id="walletModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+      <div class="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300" id="modalOverlay"></div>
+      <div class="relative bg-dark-light rounded-2xl w-full max-w-md border border-white/10 shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
+        <!-- 模态框头部 -->
+        <div class="px-6 py-4 border-b border-white/10 flex items-center justify-between">
+          <h3 class="text-xl font-bold">Connect wallet</h3>
+          <button id="closeModalBtn" class="text-text-light hover:text-white transition-colors">
+            <i class="fa fa-times"></i>
+          </button>
+        </div>
+
+        <!-- 模态框内容 -->
+        <div class="p-6">
+          <p class="text-text-light mb-6">Choose your wallet provider to connect to the Web3 application.</p>
+
+          <!-- 钱包选项 -->
+          <div class="space-y-3">
+            <!-- MetaMask钱包按钮 -->
+            <div class="animate-fade-in" style="animation-delay: 0.2s">
+              <button class="w-full flex items-center justify-between p-4 rounded-xl border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all group" id="metaMaskWalletBtn">
+                <div class="flex items-center">
+                  <span class="font-medium">MetaMask</span>
+                </div>
+                <i class="fa fa-arrow-right text-text-light"></i>
+              </button>
+            </div>
+
+            <div class="animate-fade-in" style="animation-delay: 0.3s">
+              <button class="w-full flex items-center justify-between p-4 rounded-xl border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all group">
+                <div class="flex items-center">
+                  <span class="font-medium">Coinbase Wallet</span>
+                </div>
+                <i class="fa fa-arrow-right text-text-light"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- 连接说明 -->
+          <div class="mt-6 p-4 bg-dark rounded-lg border border-white/10 animate-slide-up">
+            <p class="text-xs text-text-light">
+              <i class="fa fa-info-circle text-primary mr-2"></i>
+              Connecting your wallet indicates that you agree to our<a href="#" class="text-primary hover:underline">Terms of Service</a>and<a href="#" class="text-primary hover:underline">Privacy Policy</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 连接成功后显示的用户信息 -->
+    <div id="connectedWallet" class="fixed top-16 right-4 z-40 bg-dark-light rounded-xl p-4 border border-white/10 shadow-lg hidden animate-fade-in">
+      <div class="flex items-center space-x-3">
+            <div>
+          <p class="font-medium text-white" id="walletAddress"></p>
+          <p class="text-xs text-text-light" id="walletBalance">Loading...</p>
+        </div>
+      </div>
+      <button id="disconnectBtn" class="mt-3 w-full px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors text-sm">
+        断开连接
+      </button>
+    </div>
+  </body>
+</html>
