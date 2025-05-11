@@ -44,7 +44,7 @@
         .animate-slide-up {
           animation: slideUp 0.3s ease-out;
         }
-        @keyframes fadeIn {
+ Connected       @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
         }
@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
     startGameBtn.innerHTML = `
       <div class="flex items-center space-x-2">
         <div class="animate-spin rounded-full h-5 w-5 border-2 border-t-transparent"></div>
-        <span class="gradient-text">处理中...</span>
+        <span class="gradient-text">Processing...</span>
       </div>
     `;
     
@@ -432,8 +432,8 @@ function updateWalletUI() {
       // 更新钱包UI
       function updateWalletUI() {
         if (accounts && accounts.length > 0) {
-          // 已连接
-          walletStatus.textContent = '已连接';
+          // Connected
+          walletStatus.textContent = 'Connected';
           connectWalletBtn.classList.add('bg-primary/20', 'border-primary/30');
           connectWalletBtn.classList.remove('bg-dark-light', 'border-white/10');
 
@@ -490,7 +490,7 @@ function updateWalletUI() {
         // 断开连接按钮事件
         disconnectBtn.addEventListener('click', disconnectWallet);
 
-        // 检查是否已连接钱包
+        // 检查是否Connected钱包
         if (window.ethereum && window.ethereum.isMetaMask && window.ethereum.selectedAddress) {
           accounts = [window.ethereum.selectedAddress];
           web3 = new Web3(window.ethereum);
