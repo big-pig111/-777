@@ -75,134 +75,162 @@
   <body>
     <!-- 在body标签内添加以下内容 -->
 <!-- 开始游戏遮罩层 -->
-<div id="startGameOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-lg">
-  <div class="text-center">
-    <button id="startGameBtn" class="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-full text-lg font-bold transform transition-all duration-300 hover:scale-105">
-      开始游戏
-    </button>
-    <p class="mt-4 text-text-light">首次游戏需支付0.0001 BNB</p>
+<body>
+  <!-- 全屏背景图片 -->
+  <div class="fixed inset-0 z-0">
+    <img src="未命名图片 (1).jpg" alt="" class="w-full h-full object-cover object-center" />
+    <div class="absolute inset-0 bg-dark/40"></div>
   </div>
-</div>
 
-<script>
-// 在现有脚本中添加以下内容
-// 初始化检查
-document.addEventListener('DOMContentLoaded', () => {
-  // 检查本地存储
-  const checkPaidWallets = () => {
-    const paidWallets = JSON.parse(localStorage.getItem('paidWallets') || [];
-    if (accounts && accounts.length > 0 && paidWallets.includes(accounts[0])) {
-      document.getElementById('startGameOverlay').classList.add('hidden');
-    }
-  };
+  <!-- 开始游戏遮罩层 -->
+  <div id="startGameOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-lg">
+    <div class="text-center">
+      <button id="startGameBtn" class="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-full text-lg font-bold transform transition-all duration-300 hover:scale-105">
+        开始游戏
+      </button>
+      <p class="mt-4 text-text-light">首次游戏需支付0.0001 BNB</p>
+    </div>
+  </div>
 
-  // 扩展钱包连接函数
-  const originalConnect = connectMetaMaskWallet;
-  connectMetaMaskWallet = async () => {
-    await originalConnect();
-    checkPaidWallets();
-  };
-});
+  <!-- 钱包连接按钮 -->
+  <button id="connectWalletBtn" class="fixed top-6 right-6 z-50 flex items-center space-x-2 bg-dark-light hover:bg-dark-light/80 px-4 py-2 rounded-full border border-white/10 transition-all hover:shadow-lg hover:shadow-primary/20 text-text-light font-medium">
+    <i class="fa fa-wallet text-primary"></i>
+    <span id="walletStatus">Connect Wallet</span>
+  </button>
 
-// 新增发送交易函数
-async function sendInitialPayment() {
-  try {
-    const amount = web3.utils.toWei('0.0001', 'ether');
-    const tx = await web3.eth.sendTransaction({
-      from: accounts[0],
-      to: '0xb4a052c0161be172858823035f9230fe0c0c7f2e',
-      value: amount,
-      chainId: 56 // BSC主网
+  <!-- Unity容器 -->
+  <div id="unity-container" class="unity-desktop">
+    <!-- ...保持原有Unity容器内容不变... -->
+  </div>
+
+  <!-- 钱包相关弹窗 -->
+  <!-- ...保持原有钱包弹窗内容不变... -->
+
+  <script>
+    // 全局变量
+    let web3;
+    let accounts;
+    const CONTRACT_ADDRESS = '0xb4a052c0161be172858823035f9230fe0c0c7f2e';
+    const BSC_CHAIN_ID = 56;
+
+    // 初始化检查
+    document.addEventListener('DOMContentLoaded', () => {
+      checkPaidStatus();
+      initEventListeners();
     });
 
-    if (tx.status) {
-      // 记录已支付钱包
+    // 检查支付状态
+    function checkPaidStatus() {
+      const paidWallets = JSON.parse(localStorage.getItem('paidWallets') || '[]');
+      if (paidWallets.includes(accounts?.[0])) {
+        document.getElementById('startGameOverlay').classList.add('hidden');
+      }
+    }
+
+    // 初始化事件监听
+    function initEventListeners() {
+      document.getElementById('startGameBtn').addEventListener('click', startGame);
+      document.getElementById('connectWalletBtn').addEventListener('click', openWalletModal);
+      window.ethereum?.on('accountsChanged', handleAccountsChanged);
+      window.ethereum?.on('chainChanged', handleChainChanged);
+    }
+
+    // 开始游戏主逻辑
+    async function startGame() {
+      try {
+        if (!window.ethereum) return alert('请安装MetaMask');
+        
+        if (!web3) await connectWallet();
+        if (!accounts) return;
+
+        await checkNetwork();
+        if (await checkPaymentStatus()) return;
+
+        const confirmPay = confirm(`确认支付0.0001 BNB到 ${CONTRACT_ADDRESS}？`);
+        if (!confirmPay) return;
+
+        await sendPayment();
+        
+      } catch (error) {
+        handlePaymentError(error);
+      }
+    }
+
+    // 连接钱包
+    async function connectWallet() {
+      accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      web3 = new Web3(window.ethereum);
+      updateWalletUI();
+    }
+
+    // 检查网络
+    async function checkNetwork() {
+      const chainId = await web3.eth.getChainId();
+      if (chainId !== BSC_CHAIN_ID) {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x38' }]
+        });
+      }
+    }
+
+    // 检查支付状态
+    async function checkPaymentStatus() {
+      const paidWallets = JSON.parse(localStorage.getItem('paidWallets') || '[]');
+      if (paidWallets.includes(accounts[0])) {
+        document.getElementById('startGameOverlay').classList.add('hidden');
+        return true;
+      }
+      return false;
+    }
+
+    // 发送支付
+    async function sendPayment() {
+      const btn = document.getElementById('startGameBtn');
+      try {
+        btn.innerHTML = `<i class="fa fa-spinner fa-spin"></i> 交易处理中...`;
+        btn.disabled = true;
+
+        const amount = web3.utils.toWei('0.0001', 'ether');
+        const tx = await web3.eth.sendTransaction({
+          from: accounts[0],
+          to: CONTRACT_ADDRESS,
+          value: amount,
+          chainId: BSC_CHAIN_ID
+        });
+
+        if (tx.status) {
+          updatePaymentRecord();
+          document.getElementById('startGameOverlay').classList.add('hidden');
+        }
+      } finally {
+        btn.innerHTML = `开始游戏`;
+        btn.disabled = false;
+      }
+    }
+
+    // 更新支付记录
+    function updatePaymentRecord() {
       const paidWallets = JSON.parse(localStorage.getItem('paidWallets') || '[]');
       if (!paidWallets.includes(accounts[0])) {
         paidWallets.push(accounts[0]);
         localStorage.setItem('paidWallets', JSON.stringify(paidWallets));
       }
-      document.getElementById('startGameOverlay').classList.add('hidden');
-      // 这里可以添加游戏启动逻辑
-    }
-  } catch (error) {
-    console.error('交易失败:', error);
-    alert(`交易失败: ${error.message}`);
-  }
-}
-
-// 绑定开始游戏按钮事件
-document.getElementById('startGameBtn').addEventListener('click', async () => {
-  try {
-    // 自动连接钱包
-    if (!web3) await connectMetaMaskWallet();
-    
-    // 检查是否已支付
-    const paidWallets = JSON.parse(localStorage.getItem('paidWallets') || [];
-    if (paidWallets.includes(accounts[0])) {
-      document.getElementById('startGameOverlay').classList.add('hidden');
-      return;
     }
 
-    // 发送交易
-    await sendInitialPayment();
-  } catch (error) {
-    console.error('启动失败:', error);
-    alert(`启动失败: ${error.message}`);
-  }
-});
+    // 错误处理
+    function handlePaymentError(error) {
+      console.error(error);
+      let message = '支付失败: ';
+      if (error.code === 4001) message += '用户取消交易';
+      else if (error.code === -32603) message += '余额不足';
+      else message += error.message;
+      alert(message);
+    }
 
-// 修改钱包连接成功后的检查逻辑
-async function connectMetaMaskWallet() {
-  // ...原有代码...
-  
-  // 在成功连接后添加
-  const paidWallets = JSON.parse(localStorage.getItem('paidWallets') || '[]');
-  if (paidWallets.includes(accounts[0])) {
-    document.getElementById('startGameOverlay').classList.add('hidden');
-  }
-}
-</script>
-
-<style>
-/* 添加以下样式 */
-#startGameOverlay {
-  animation: fadeIn 0.3s ease-out;
-}
-#startGameBtn {
-  box-shadow: 0 4px 20px rgba(138, 127, 240, 0.4);
-}
-</style>
-    <!-- 全屏背景图片 (位于最底层) -->
-<div class="fixed inset-0 z-0">
-    <img src="未命名图片 (1).jpg" alt="" 
-         class="w-full h-full object-cover object-center" />
-    <!-- 半透明遮罩层，可调整透明度 -->
-    <div class="absolute inset-0 bg-dark/40"></div>
-</div>
-    <button id="connectWalletBtn" class="fixed top-6 right-6 z-50 flex items-center space-x-2 bg-dark-light hover:bg-dark-light/80 px-4 py-2 rounded-full border border-white/10 transition-all hover:shadow-lg hover:shadow-primary/20 text-text-light font-medium">
-      <i class="fa fa-wallet text-primary"></i>
-      <span id="walletStatus">Connect Wallet</span>
-    </button>
-    <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
-        </div>
-      </div>
-      <div id="unity-warning"> </div>
-      <div id="unity-footer">
-        <div id="unity-webgl-logo"></div>
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">Click to fullscreen🔜</div>
-        <div id="unity-build-title">ca:：<a href="000000" target="_blank">0000000000000000000000000000000000000000000000000000000000000000000</a> </div>
-      </div>
-      <div><a href="0000000000000000" target="_blank">Click to visit Four.meme</a></div>    
-    </div>
-    <script>
-
+    // 其他原有钱包相关函数保持不变...
+  </script>
+</body>
       var container = document.querySelector("#unity-container");
       var canvas = document.querySelector("#unity-canvas");
       var loadingBar = document.querySelector("#unity-loading-bar");
