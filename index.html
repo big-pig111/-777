@@ -323,6 +323,20 @@
                     closeWalletModal();
                 }
             });
+            // 开始游戏按钮事件
+startGameBtn.addEventListener('click', () => {
+    isButtonClicked = true;
+    bodyElement.classList.remove('disabled-click');
+    openWalletModal();
+});
+
+// 新增：空格键触发开始游戏按钮
+document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && !isButtonClicked) {
+        e.preventDefault(); // 防止页面滚动
+        startGameBtn.click(); // 触发按钮点击事件
+    }
+});
             // 使页面初始时不可点击
             bodyElement.classList.add('disabled-click');
         });
