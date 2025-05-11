@@ -26,6 +26,26 @@
     </script>
     <style type="text/tailwindcss">
       @layer utilities {
+  /* 新增旋转动画 */
+  .fa-spin {
+    animation: fa-spin 1s infinite linear;
+  }
+  @keyframes fa-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* 错误提示样式 */
+  .error-shake {
+    animation: errorShake 0.4s ease-in-out;
+  }
+  @keyframes errorShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(8px); }
+    75% { transform: translateX(-8px); }
+  }
+}
+      @layer utilities {
         .content-auto {
           content-visibility: auto;
         }
@@ -207,10 +227,30 @@ document.addEventListener('DOMContentLoaded', () => {
   const startBtn = document.getElementById('startBtn');
 
   // 点击开始按钮
-  startBtn.addEventListener('click', () => {
-    startOverlay.classList.add('hidden'); // 隐藏整个覆盖层
-    // 可以在这里添加游戏启动逻辑
-  });
+  startBtn.addEventListener('click', async () => {
+  try {
+    // 显示连接状态
+    startBtn.innerHTML = `
+      <i class="fa fa-spinner fa-spin mr-2"></i>
+      连接中...
+    `;
+    startBtn.classList.remove('animate-pulse');
+    startBtn.disabled = true;
+
+    // 执行钱包连接
+    await connectMetaMaskWallet();
+
+    // 连接成功后隐藏覆盖层
+    startOverlay.classList.add('hidden');
+  } catch (error) {
+    // 处理连接失败
+    console.error('连接失败:', error);
+    startBtn.innerHTML = 'START GAME';
+    startBtn.classList.add('animate-pulse');
+    startBtn.disabled = false;
+    alert(`连接失败: ${error.message || error}`);
+  }
+});
 
   // 禁止右键菜单
   startOverlay.addEventListener('contextmenu', (e) => {
@@ -278,6 +318,38 @@ document.addEventListener('DOMContentLoaded', () => {
       <button id="disconnectBtn" class="mt-3 w-full px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors text-sm">
         断开连接
       </button>
+        // 添加以下自动连接检测（在约300行左右）
+  // 检查是否已有连接的钱包
+  const checkAutoConnect = async () => {
+    if (window.ethereum && window.ethereum.selectedAddress) {
+      try {
+        // 自动隐藏开始界面
+        startOverlay.classList.add('hidden');
+        
+        // 初始化web3
+        web3 = new Web3(window.ethereum);
+        
+        // 检查网络
+        const chainId = await web3.eth.getChainId();
+        const BSC_MAINNET_CHAIN_ID = 56;
+        if (chainId !== BSC_MAINNET_CHAIN_ID) {
+          alert('请切换到 BSC 主网');
+          return;
+        }
+
+        // 更新状态
+        accounts = [window.ethereum.selectedAddress];
+        updateWalletUI();
+        getWalletBalance();
+      } catch (error) {
+        console.error('自动连接失败:', error);
+      }
+    }
+  };
+
+  // 执行自动连接检查
+  checkAutoConnect();
+});
     </div>
     <script>
       // 全局变量
@@ -299,6 +371,61 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 连接MetaMask钱包
       async function connectMetaMaskWallet() {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // 在connectMetaMaskWallet函数之后添加（约300行）
+// 监听网络变化
+if (window.ethereum) {
+  window.ethereum.on('chainChanged', (chainId) => {
+    if (parseInt(chainId) !== 56) {
+      alert('检测到网络切换，请切换回BSC主网！');
+      disconnectWallet();
+    }
+  });
+
+  // 监听账户变化
+  window.ethereum.on('accountsChanged', (accounts) => {
+    if (accounts.length === 0) {
+      disconnectWallet();
+    } else {
+      location.reload(); // 账户变化时刷新页面
+    }
+  });
+}
+      // 检查MetaMask是否安装
+      if (!window.ethereum) {
+        window.open('https://metamask.io/', '_blank');
+        return reject(new Error('请安装MetaMask插件'));
+      }
+
+      // 请求账户授权
+      accounts = await window.ethereum.request({ 
+        method: 'eth_requestAccounts' 
+      });
+
+      // 初始化web3实例
+      web3 = new Web3(window.ethereum);
+
+      // 检查网络
+      const chainId = await web3.eth.getChainId();
+      const BSC_MAINNET_CHAIN_ID = 56;
+      if (chainId !== BSC_MAINNET_CHAIN_ID) {
+        return reject(new Error('请切换到 BSC 主网（ChainID: 56）'));
+      }
+
+      // 更新UI状态
+      updateWalletUI();
+      resolve();
+    } catch (error) {
+      // 处理用户拒绝连接的情况
+      if (error.code === 4001) {
+        reject(new Error('您已取消连接请求'));
+      } else {
+        reject(error);
+      }
+    }
+  });
+}
         try {
           if (!window.ethereum) {
             alert('请安装MetaMask插件以继续');
@@ -340,6 +467,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 断开钱包连接
       async function disconnectWallet() {
+  try {
+    accounts = null;
+    web3 = null;
+    
+    // 重置开始按钮状态
+    startOverlay.classList.remove('hidden');
+    startBtn.innerHTML = 'START GAME';
+    startBtn.classList.add('animate-pulse');
+    startBtn.disabled = false;
+    
+    // 更新UI
+    updateWalletUI();
+    console.log('钱包已断开连接');
+  } catch (error) {
+    console.error('断开连接失败:', error);
+    alert('断开连接时出错: ' + error.message);
+  }
+}
         try {
           accounts = null;
           web3 = null;
