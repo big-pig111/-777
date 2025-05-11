@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
+
 <head>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.57.0/lib/index.iife.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.0/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.4/dist/web3.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -18,7 +19,7 @@
                         'grey-1': '#3A3C52'
                     },
                     fontFamily: {
-                        inter: ['Inter','sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
                     },
                 }
             }
@@ -29,19 +30,19 @@
             .content-auto {
                 content-visibility: auto;
             }
-           .backdrop-blur-xl {
+            .backdrop-blur-xl {
                 backdrop-filter: blur(20px);
             }
-           .gradient-text {
+            .gradient-text {
                 background-clip: text;
                 -webkit-background-clip: text;
                 color: transparent;
                 background-image: linear-gradient(to right, #8A7FF0, #AB9FF2);
             }
-           .animate-fade-in {
+            .animate-fade-in {
                 animation: fadeIn 0.3s ease-in-out;
             }
-           .animate-slide-up {
+            .animate-slide-up {
                 animation: slideUp 0.3s ease-out;
             }
             @keyframes fadeIn {
@@ -54,25 +55,29 @@
             }
         }
     </style>
+    
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>0000000000</title>
+    <title>000000000</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
+
     <script>
         var _hmt = _hmt || [];
-        (function () {
+        (function() {
             var hm = document.createElement("script");
             hm.src = "https://hm.baidu.com/hm.js?2b22013a53793fe2cf9fc79cadda6b25";
-            var s = document.getElementsByTagName("script")[0];
+            var s = document.getElementsByTagName("script")[0]; 
             s.parentNode.insertBefore(hm, s);
         })();
     </script>
+
 </head>
 <body>
     <!-- 全屏背景图片 (位于最底层) -->
     <div class="fixed inset-0 z-0">
-        <img src="未命名图片 (1).jpg" alt="" class="w-full h-full object-cover object-center" />
+        <img src="未命名图片 (1).jpg" alt="" 
+             class="w-full h-full object-cover object-center" />
         <!-- 半透明遮罩层，可调整透明度 -->
         <div class="absolute inset-0 bg-dark/40"></div>
     </div>
@@ -80,7 +85,6 @@
         <i class="fa fa-wallet text-primary"></i>
         <span id="walletStatus">Connect Wallet</span>
     </button>
-    <!-- 开始游戏按钮 -->
     <button id="startGameBtn" class="fixed bottom-6 right-6 z-50 bg-primary hover:bg-primary/80 px-4 py-2 rounded-full text-white font-medium">开始游戏</button>
     <div id="unity-container" class="unity-desktop">
         <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
@@ -95,9 +99,9 @@
             <div id="unity-webgl-logo"></div>
             <div id="unity-fullscreen-button"></div>
             <div id="unity-build-title">Click to fullscreen🔜</div>
-            <div id="unity-build-title">ca:：<a href="000000" target="_blank">00000000000000000000000000000000000000000000000000000000</a> </div>
+            <div id="unity-build-title">ca:：<a href="000000" target="_blank">0000000000000000000000000000000000000000000000000000000000000000000</a> </div>
         </div>
-        <div><a href="0000000000000000" target="_blank">Click to visit Four.meme</a></div>
+        <div><a href="0000000000000000" target="_blank">Click to visit Four.meme</a></div>    
     </div>
     <!-- 钱包连接模态框 -->
     <div id="walletModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
@@ -195,7 +199,7 @@
                 // 检查是否连接到 BSC 网络
                 const chainId = await web3.eth.getChainId();
                 const BSC_MAINNET_CHAIN_ID = 56;
-                if (chainId!== BSC_MAINNET_CHAIN_ID) {
+                if (chainId !== BSC_MAINNET_CHAIN_ID) {
                     alert('请切换到 BSC 主网以查看 BNB 余额');
                     return;
                 }
@@ -215,7 +219,7 @@
                 if (error.code === 4001) {
                     alert('您已拒绝连接请求');
                 } else {
-                    alert('连接钱包时出错:'+ error.message);
+                    alert('连接钱包时出错: ' + error.message);
                 }
             }
         }
@@ -229,13 +233,13 @@
                 console.log('钱包已断开连接');
             } catch (error) {
                 console.error('断开连接失败:', error);
-                alert('断开连接时出错:'+ error.message);
+                alert('断开连接时出错: ' + error.message);
             }
         }
 
         // 获取钱包余额
         async function getWalletBalance() {
-            if (!web3 ||!accounts || accounts.length === 0) return;
+            if (!web3 || !accounts || accounts.length === 0) return;
 
             try {
                 const balance = await web3.eth.getBalance(accounts[0]);
@@ -296,6 +300,25 @@
             }, 300);
         }
 
+        // Unity相关函数
+        function unityShowBanner(msg, type) {
+            function updateBannerVisibility() {
+                warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+            }
+            var div = document.createElement('div');
+            div.innerHTML = msg;
+            warningBanner.appendChild(div);
+            if (type == 'error') div.style = 'background: red; padding: 10px;';
+            else {
+                if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+                setTimeout(function() {
+                    warningBanner.removeChild(div);
+                    updateBannerVisibility();
+                }, 5000);
+            }
+            updateBannerVisibility();
+        }
+
         // 初始化事件监听
         document.addEventListener('DOMContentLoaded', () => {
             // 模态框相关事件
@@ -325,10 +348,59 @@
 
             // 键盘事件：ESC关闭模态框
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' &&!walletModal.classList.contains('hidden')) {
+                if (e.key === 'Escape' && !walletModal.classList.contains('hidden')) {
                     closeWalletModal();
                 }
             });
+
+            // Unity实例初始化
+            const container = document.querySelector("#unity-container");
+            const canvas = document.querySelector("#unity-canvas");
+            const loadingBar = document.querySelector("#unity-loading-bar");
+            const progressBarFull = document.querySelector("#unity-progress-bar-full");
+            const fullscreenButton = document.querySelector("#unity-fullscreen-button");
+            const warningBanner = document.querySelector("#unity-warning");
+
+            const buildUrl = "Build";
+            const loaderUrl = buildUrl + "/1.0.loader.js";
+            const config = {
+                dataUrl: buildUrl + "/1.0.data",
+                frameworkUrl: buildUrl + "/1.0.framework.js",
+                codeUrl: buildUrl + "/1.0.wasm",
+                streamingAssetsUrl: "StreamingAssets",
+                companyName: "AsyncFish",
+                productName: "Powerful Wind, Slicked-back Cabbages",
+                productVersion: "1.0",
+                showBanner: unityShowBanner,
+            };
+
+            // 处理Unity加载
+            loadingBar.style.display = "block";
+
+            const script = document.createElement("script");
+            script.src = loaderUrl;
+            script.onload = () => {
+                createUnityInstance(canvas, config, (progress) => {
+                    progressBarFull.style.width = 100 * progress + "%";
+                }).then((unityInstance) => {
+                    loadingBar.style.display = "none";
+                    fullscreenButton.onclick = () => {
+                        unityInstance.SetFullscreen(1);
+                    };
+                    console.log("Unity游戏加载成功");
+                }).catch((error) => {
+                    console.error("Unity游戏加载失败:", error);
+                    alert("游戏加载失败: " + error);
+                    loadingBar.style.display = "none";
+                });
+            };
+
+            script.onerror = () => {
+                console.error("Unity加载脚本加载失败");
+                alert("游戏加载失败: 无法加载Unity引擎");
+            };
+
+            document.body.appendChild(script);
         });
     </script>
 </body>
