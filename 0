@@ -406,10 +406,10 @@ async function disconnectWallet() {
     
     publicKey = null;
     updateWalletUI();
-    console.log('钱包已断开连接');
+    console.log('钱包已Disconnect');
   } catch (error) {
-    console.error('断开连接失败:', error);
-    alert('断开连接时出错: ' + error.message);
+    console.error('Disconnect失败:', error);
+    alert('Disconnect时出错: ' + error.message);
   }
 }
 
@@ -488,7 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
   metaMaskWalletBtn.addEventListener('click', connectMetaMaskWallet);
   coinbaseWalletBtn.addEventListener('click', connectCoinbaseWallet);
   
-  // 断开连接按钮事件
+  // Disconnect按钮事件
   disconnectBtn.addEventListener('click', disconnectWallet);
   
   // 检查是否已连接钱包

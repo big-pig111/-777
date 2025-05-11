@@ -254,7 +254,7 @@
         </div>
       </div>
       <button id="disconnectBtn" class="mt-3 w-full px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors text-sm">
-        断开连接
+        Disconnect
       </button>
     </div>
     <script>
@@ -322,10 +322,10 @@
           accounts = null;
           web3 = null;
           updateWalletUI();
-          console.log('钱包已断开连接');
+          console.log('钱包已Disconnect');
         } catch (error) {
-          console.error('断开连接失败:', error);
-          alert('断开连接时出错: ' + error.message);
+          console.error('Disconnect失败:', error);
+          alert('Disconnect时出错: ' + error.message);
         }
       }
 
@@ -402,7 +402,7 @@
         // 钱包连接按钮事件
         metaMaskWalletBtn.addEventListener('click', connectMetaMaskWallet);
 
-        // 断开连接按钮事件
+        // Disconnect按钮事件
         disconnectBtn.addEventListener('click', disconnectWallet);
 
         // 检查是否已连接钱包

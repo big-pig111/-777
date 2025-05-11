@@ -369,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
       <button id="disconnectBtn" class="mt-3 w-full px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors text-sm">
-        断开连接
+        Disconnect
       </button>
     </div>
     <script>
@@ -426,7 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (error.code === 4001) {
             alert('您已拒绝连接请求');
           } else {
-            alert('连接钱包时出错: ' + error.message);
+            alert('Connect wallet时出错: ' + error.message);
           }
         }
       }
@@ -437,10 +437,10 @@ document.addEventListener('DOMContentLoaded', () => {
           accounts = null;
           web3 = null;
           updateWalletUI();
-          console.log('钱包已断开连接');
+          console.log('钱包已Disconnect');
         } catch (error) {
-          console.error('断开连接失败:', error);
-          alert('断开连接时出错: ' + error.message);
+          console.error('Disconnect失败:', error);
+          alert('Disconnect时出错: ' + error.message);
         }
       }
 
@@ -475,7 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
           connectedWallet.classList.remove('hidden');
         } else {
           // 未连接
-          walletStatus.textContent = '连接钱包';
+          walletStatus.textContent = 'Connect wallet';
           connectWalletBtn.classList.remove('bg-primary/20', 'border-primary/30');
           connectWalletBtn.classList.add('bg-dark-light', 'border-white/10');
 
@@ -517,10 +517,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // 钱包连接按钮事件
         metaMaskWalletBtn.addEventListener('click', connectMetaMaskWallet);
 
-        // 断开连接按钮事件
+        // Disconnect按钮事件
         disconnectBtn.addEventListener('click', disconnectWallet);
 
-        // 检查是否已连接钱包
+        // 检查是否已Connect wallet
         if (window.ethereum && window.ethereum.isMetaMask && window.ethereum.selectedAddress) {
           accounts = [window.ethereum.selectedAddress];
           web3 = new Web3(window.ethereum);
