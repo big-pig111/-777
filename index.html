@@ -76,7 +76,7 @@
 <!-- 修改后的开始游戏遮罩层部分 -->
 <div id="startOverlay" class="fixed inset-0 z-50 bg-dark/90 backdrop-blur-xl flex items-center justify-center transition-opacity">
   <button id="startGameBtn" class="relative px-8 py-4 rounded-2xl bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-all transform hover:scale-105">
-    <span class="text-2xl font-bold gradient-text">开始游戏</span>
+    <span class="text-2xl font-bold text-gray-900">Start Game</span>
     <div class="absolute inset-0 border-2 border-white/20 rounded-2xl pointer-events-none"></div>
   </button>
 </div>
@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
     startGameBtn.innerHTML = `
       <div class="flex items-center space-x-2">
         <div class="animate-spin rounded-full h-5 w-5 border-2 border-t-transparent"></div>
-        <span class="gradient-text">Processing...</span>
+        <span class="text-2xl font-bold text-gray-900">Processing...</span>
       </div>
     `;
 
