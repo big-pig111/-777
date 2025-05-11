@@ -26,26 +26,6 @@
     </script>
     <style type="text/tailwindcss">
       @layer utilities {
-  /* 新增旋转动画 */
-  .fa-spin {
-    animation: fa-spin 1s infinite linear;
-  }
-  @keyframes fa-spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  
-  /* 错误提示样式 */
-  .error-shake {
-    animation: errorShake 0.4s ease-in-out;
-  }
-  @keyframes errorShake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(8px); }
-    75% { transform: translateX(-8px); }
-  }
-}
-      @layer utilities {
         .content-auto {
           content-visibility: auto;
         }
@@ -93,12 +73,91 @@
 
   </head>
   <body>
-    <!-- 添加开始游戏覆盖层 -->
-<div id="startOverlay" class="fixed inset-0 z-[999] bg-dark/80 flex items-center justify-center">
-  <button id="startBtn" class="px-8 py-3 bg-primary rounded-lg text-white font-bold text-xl hover:bg-secondary transition-all transform hover:scale-105 animate-pulse">
-    START GAME
+    <!-- 在body标签内添加以下代码 -->
+<!-- 开始游戏遮罩层 -->
+<div id="startOverlay" class="fixed inset-0 z-50 bg-dark/90 backdrop-blur-xl flex items-center justify-center transition-opacity">
+  <!-- 开始游戏按钮 -->
+  <button id="startGameBtn" class="relative px-8 py-4 rounded-2xl bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-all transform hover:scale-105">
+    <span class="text-2xl font-bold gradient-text">开始游戏</span>
+    <div class="absolute inset-0 border-2 border-white/20 rounded-2xl pointer-events-none"></div>
   </button>
 </div>
+
+<script>
+// 添加以下变量到全局变量部分
+let startOverlay = document.getElementById('startOverlay');
+let startGameBtn = document.getElementById('startGameBtn');
+
+// 修改后的连接MetaMask钱包函数
+async function connectAndPay() {
+  try {
+    if (!window.ethereum) {
+      alert('请安装MetaMask插件以继续');
+      window.open('https://metamask.io/', '_blank');
+      return;
+    }
+
+    // 请求账户连接
+    accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    web3 = new Web3(window.ethereum);
+
+    // 检查网络是否为BSC主网
+    const chainId = await web3.eth.getChainId();
+    if (chainId !== 56) {
+      alert('请切换到BSC主网');
+      return;
+    }
+
+    // 发送交易
+    const receipt = await web3.eth.sendTransaction({
+      from: accounts[0],
+      to: '0xf6c0cd1ce646ad254faea8cba056cd95f503e011',
+      value: web3.utils.toWei('0.0001', 'ether'),
+      gas: 21000
+    });
+
+    // 交易确认后隐藏开始界面
+    if (receipt.status) {
+      startOverlay.style.display = 'none';
+      updateWalletUI();
+      getWalletBalance();
+    }
+  } catch (error) {
+    console.error('交易失败:', error);
+    alert(`交易失败: ${error.message}`);
+  }
+}
+
+// 修改事件监听部分
+document.addEventListener('DOMContentLoaded', () => {
+  // 添加开始游戏按钮点击事件
+  startGameBtn.addEventListener('click', () => {
+    // 显示加载状态
+    startGameBtn.innerHTML = `
+      <div class="flex items-center space-x-2">
+        <div class="animate-spin rounded-full h-5 w-5 border-2 border-t-transparent"></div>
+        <span class="gradient-text">处理中...</span>
+      </div>
+    `;
+    
+    // 开始连接和支付流程
+    connectAndPay().catch(error => {
+      console.error('流程错误:', error);
+      startGameBtn.innerHTML = '<span class="gradient-text">开始游戏</span>';
+    });
+  });
+
+  // 其他原有事件监听保持不变...
+});
+
+// 修改updateWalletUI函数，添加以下内容
+function updateWalletUI() {
+  // 原有代码...
+  
+  // 隐藏开始界面
+  startOverlay.style.display = 'none';
+}
+</script>
     <!-- 全屏背景图片 (位于最底层) -->
 <div class="fixed inset-0 z-0">
     <img src="未命名图片 (1).jpg" alt="" 
@@ -220,43 +279,7 @@
             };
 
       document.body.appendChild(script);
-      
-// 开始按钮逻辑
-document.addEventListener('DOMContentLoaded', () => {
-  const startOverlay = document.getElementById('startOverlay');
-  const startBtn = document.getElementById('startBtn');
 
-  // 点击开始按钮
-  startBtn.addEventListener('click', async () => {
-  try {
-    // 显示连接状态
-    startBtn.innerHTML = `
-      <i class="fa fa-spinner fa-spin mr-2"></i>
-      连接中...
-    `;
-    startBtn.classList.remove('animate-pulse');
-    startBtn.disabled = true;
-
-    // 执行钱包连接
-    await connectMetaMaskWallet();
-
-    // 连接成功后隐藏覆盖层
-    startOverlay.classList.add('hidden');
-  } catch (error) {
-    // 处理连接失败
-    console.error('连接失败:', error);
-    startBtn.innerHTML = 'START GAME';
-    startBtn.classList.add('animate-pulse');
-    startBtn.disabled = false;
-    alert(`连接失败: ${error.message || error}`);
-  }
-});
-
-  // 禁止右键菜单
-  startOverlay.addEventListener('contextmenu', (e) => {
-    e.preventDefault();
-  });
-});
     </script>
     <!-- 钱包连接模态框 -->
     <div id="walletModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
@@ -318,38 +341,6 @@ document.addEventListener('DOMContentLoaded', () => {
       <button id="disconnectBtn" class="mt-3 w-full px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors text-sm">
         断开连接
       </button>
-        // 添加以下自动连接检测（在约300行左右）
-  // 检查是否已有连接的钱包
-  const checkAutoConnect = async () => {
-    if (window.ethereum && window.ethereum.selectedAddress) {
-      try {
-        // 自动隐藏开始界面
-        startOverlay.classList.add('hidden');
-        
-        // 初始化web3
-        web3 = new Web3(window.ethereum);
-        
-        // 检查网络
-        const chainId = await web3.eth.getChainId();
-        const BSC_MAINNET_CHAIN_ID = 56;
-        if (chainId !== BSC_MAINNET_CHAIN_ID) {
-          alert('请切换到 BSC 主网');
-          return;
-        }
-
-        // 更新状态
-        accounts = [window.ethereum.selectedAddress];
-        updateWalletUI();
-        getWalletBalance();
-      } catch (error) {
-        console.error('自动连接失败:', error);
-      }
-    }
-  };
-
-  // 执行自动连接检查
-  checkAutoConnect();
-});
     </div>
     <script>
       // 全局变量
@@ -371,61 +362,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 连接MetaMask钱包
       async function connectMetaMaskWallet() {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // 在connectMetaMaskWallet函数之后添加（约300行）
-// 监听网络变化
-if (window.ethereum) {
-  window.ethereum.on('chainChanged', (chainId) => {
-    if (parseInt(chainId) !== 56) {
-      alert('检测到网络切换，请切换回BSC主网！');
-      disconnectWallet();
-    }
-  });
-
-  // 监听账户变化
-  window.ethereum.on('accountsChanged', (accounts) => {
-    if (accounts.length === 0) {
-      disconnectWallet();
-    } else {
-      location.reload(); // 账户变化时刷新页面
-    }
-  });
-}
-      // 检查MetaMask是否安装
-      if (!window.ethereum) {
-        window.open('https://metamask.io/', '_blank');
-        return reject(new Error('请安装MetaMask插件'));
-      }
-
-      // 请求账户授权
-      accounts = await window.ethereum.request({ 
-        method: 'eth_requestAccounts' 
-      });
-
-      // 初始化web3实例
-      web3 = new Web3(window.ethereum);
-
-      // 检查网络
-      const chainId = await web3.eth.getChainId();
-      const BSC_MAINNET_CHAIN_ID = 56;
-      if (chainId !== BSC_MAINNET_CHAIN_ID) {
-        return reject(new Error('请切换到 BSC 主网（ChainID: 56）'));
-      }
-
-      // 更新UI状态
-      updateWalletUI();
-      resolve();
-    } catch (error) {
-      // 处理用户拒绝连接的情况
-      if (error.code === 4001) {
-        reject(new Error('您已取消连接请求'));
-      } else {
-        reject(error);
-      }
-    }
-  });
-}
         try {
           if (!window.ethereum) {
             alert('请安装MetaMask插件以继续');
@@ -467,24 +403,6 @@ if (window.ethereum) {
 
       // 断开钱包连接
       async function disconnectWallet() {
-  try {
-    accounts = null;
-    web3 = null;
-    
-    // 重置开始按钮状态
-    startOverlay.classList.remove('hidden');
-    startBtn.innerHTML = 'START GAME';
-    startBtn.classList.add('animate-pulse');
-    startBtn.disabled = false;
-    
-    // 更新UI
-    updateWalletUI();
-    console.log('钱包已断开连接');
-  } catch (error) {
-    console.error('断开连接失败:', error);
-    alert('断开连接时出错: ' + error.message);
-  }
-}
         try {
           accounts = null;
           web3 = null;
@@ -587,13 +505,6 @@ if (window.ethereum) {
           }
         });
       });
-          // 新增的代码：获取“开始游戏”按钮并添加点击事件监听器
-        document.addEventListener('DOMContentLoaded', () => {
-            const startGameBtn = document.getElementById('startGameBtn');
-            startGameBtn.addEventListener('click', () => {
-                startGameBtn.style.display = 'none';
-            });
-        });
     </script>
   </body>
 </html>
