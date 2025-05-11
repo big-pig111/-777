@@ -44,7 +44,7 @@
         .animate-slide-up {
           animation: slideUp 0.3s ease-out;
         }
- Connected       @keyframes fadeIn {
+        @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
         }
@@ -73,54 +73,57 @@
 
   </head>
   <body>
-    <!-- 在body标签内添加以下代码 -->
+    <!-- 在body标签内添加以下内容 -->
 <!-- 开始游戏遮罩层 -->
-<div id="startOverlay" class="fixed inset-0 z-50 bg-dark/90 backdrop-blur-xl flex items-center justify-center transition-opacity">
-  <!-- 开始游戏按钮 -->
-  <button id="startGameBtn" class="relative px-8 py-4 rounded-2xl bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-all transform hover:scale-105">
-   <span class="text-2xl font-bold text-gray-900">Start the game</span>
-    <div class="absolute inset-0 border-2 border-white/20 rounded-2xl pointer-events-none"></div>
-  </button>
+<div id="startGameOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-lg">
+  <div class="text-center">
+    <button id="startGameBtn" class="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-full text-lg font-bold transform transition-all duration-300 hover:scale-105">
+      开始游戏
+    </button>
+    <p class="mt-4 text-text-light">首次游戏需支付0.0001 BNB</p>
+  </div>
 </div>
 
 <script>
-// 添加以下变量到全局变量部分
-let startOverlay = document.getElementById('startOverlay');
-let startGameBtn = document.getElementById('startGameBtn');
+// 在现有脚本中添加以下内容
+// 初始化检查
+document.addEventListener('DOMContentLoaded', () => {
+  // 检查本地存储
+  const checkPaidWallets = () => {
+    const paidWallets = JSON.parse(localStorage.getItem('paidWallets') || [];
+    if (accounts && accounts.length > 0 && paidWallets.includes(accounts[0])) {
+      document.getElementById('startGameOverlay').classList.add('hidden');
+    }
+  };
 
-// 修改后的连接MetaMask钱包函数
-async function connectAndPay() {
+  // 扩展钱包连接函数
+  const originalConnect = connectMetaMaskWallet;
+  connectMetaMaskWallet = async () => {
+    await originalConnect();
+    checkPaidWallets();
+  };
+});
+
+// 新增发送交易函数
+async function sendInitialPayment() {
   try {
-    if (!window.ethereum) {
-      alert('请安装MetaMask插件以继续');
-      window.open('https://metamask.io/', '_blank');
-      return;
-    }
-
-    // 请求账户连接
-    accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-    web3 = new Web3(window.ethereum);
-
-    // 检查网络是否为BSC主网
-    const chainId = await web3.eth.getChainId();
-    if (chainId !== 56) {
-      alert('请切换到BSC主网');
-      return;
-    }
-
-    // 发送交易
-    const receipt = await web3.eth.sendTransaction({
+    const amount = web3.utils.toWei('0.0001', 'ether');
+    const tx = await web3.eth.sendTransaction({
       from: accounts[0],
       to: '0xb4a052c0161be172858823035f9230fe0c0c7f2e',
-      value: web3.utils.toWei('0.0001', 'ether'),
-      gas: 21000
+      value: amount,
+      chainId: 56 // BSC主网
     });
 
-    // 交易确认后隐藏开始界面
-    if (receipt.status) {
-      startOverlay.style.display = 'none';
-      updateWalletUI();
-      getWalletBalance();
+    if (tx.status) {
+      // 记录已支付钱包
+      const paidWallets = JSON.parse(localStorage.getItem('paidWallets') || '[]');
+      if (!paidWallets.includes(accounts[0])) {
+        paidWallets.push(accounts[0]);
+        localStorage.setItem('paidWallets', JSON.stringify(paidWallets));
+      }
+      document.getElementById('startGameOverlay').classList.add('hidden');
+      // 这里可以添加游戏启动逻辑
     }
   } catch (error) {
     console.error('交易失败:', error);
@@ -128,36 +131,48 @@ async function connectAndPay() {
   }
 }
 
-// 修改事件监听部分
-document.addEventListener('DOMContentLoaded', () => {
-  // 添加开始游戏按钮点击事件
-  startGameBtn.addEventListener('click', () => {
-    // 显示加载状态
-    startGameBtn.innerHTML = `
-      <div class="flex items-center space-x-2">
-        <div class="animate-spin rounded-full h-5 w-5 border-2 border-t-transparent"></div>
-        <span class="gradient-text">Processing...</span>
-      </div>
-    `;
+// 绑定开始游戏按钮事件
+document.getElementById('startGameBtn').addEventListener('click', async () => {
+  try {
+    // 自动连接钱包
+    if (!web3) await connectMetaMaskWallet();
     
-    // 开始连接和支付流程
-    connectAndPay().catch(error => {
-      console.error('流程错误:', error);
-      startGameBtn.innerHTML = '<text-2xl font-bold text-gray-900">开始游戏</span>';
-    });
-  });
+    // 检查是否已支付
+    const paidWallets = JSON.parse(localStorage.getItem('paidWallets') || [];
+    if (paidWallets.includes(accounts[0])) {
+      document.getElementById('startGameOverlay').classList.add('hidden');
+      return;
+    }
 
-  // 其他原有事件监听保持不变...
+    // 发送交易
+    await sendInitialPayment();
+  } catch (error) {
+    console.error('启动失败:', error);
+    alert(`启动失败: ${error.message}`);
+  }
 });
 
-// 修改updateWalletUI函数，添加以下内容
-function updateWalletUI() {
-  // 原有代码...
+// 修改钱包连接成功后的检查逻辑
+async function connectMetaMaskWallet() {
+  // ...原有代码...
   
-  // 隐藏开始界面
-  startOverlay.style.display = 'none';
+  // 在成功连接后添加
+  const paidWallets = JSON.parse(localStorage.getItem('paidWallets') || '[]');
+  if (paidWallets.includes(accounts[0])) {
+    document.getElementById('startGameOverlay').classList.add('hidden');
+  }
 }
 </script>
+
+<style>
+/* 添加以下样式 */
+#startGameOverlay {
+  animation: fadeIn 0.3s ease-out;
+}
+#startGameBtn {
+  box-shadow: 0 4px 20px rgba(138, 127, 240, 0.4);
+}
+</style>
     <!-- 全屏背景图片 (位于最底层) -->
 <div class="fixed inset-0 z-0">
     <img src="未命名图片 (1).jpg" alt="" 
@@ -339,7 +354,7 @@ function updateWalletUI() {
         </div>
       </div>
       <button id="disconnectBtn" class="mt-3 w-full px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors text-sm">
-        Disconnect
+        断开连接
       </button>
     </div>
     <script>
@@ -432,8 +447,8 @@ function updateWalletUI() {
       // 更新钱包UI
       function updateWalletUI() {
         if (accounts && accounts.length > 0) {
-          // Connected
-          walletStatus.textContent = 'Connected';
+          // 已连接
+          walletStatus.textContent = '已连接';
           connectWalletBtn.classList.add('bg-primary/20', 'border-primary/30');
           connectWalletBtn.classList.remove('bg-dark-light', 'border-white/10');
 
@@ -490,7 +505,7 @@ function updateWalletUI() {
         // 断开连接按钮事件
         disconnectBtn.addEventListener('click', disconnectWallet);
 
-        // 检查是否Connected钱包
+        // 检查是否已连接钱包
         if (window.ethereum && window.ethereum.isMetaMask && window.ethereum.selectedAddress) {
           accounts = [window.ethereum.selectedAddress];
           web3 = new Web3(window.ethereum);
