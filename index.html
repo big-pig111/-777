@@ -1,6 +1,49 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
   <head>
+     <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .backdrop-blur-xl {
+        backdrop-filter: blur(20px);
+      }
+      .gradient-text {
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        background-image: linear-gradient(to right, #8A7FF0, #AB9FF2);
+      }
+      .animate-fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+      }
+      .animate-slide-up {
+        animation: slideUp 0.3s ease-out;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+    }
+  </style>
+  <!-- 新增样式 -->
+  <style>
+    body {
+      background-image: url('https://www.dropbox.com/scl/fi/18wozjog2iodjysm5bajz/1.jpg?rlkey=qugc8cpwzavqqhmpbglkboq9n&st=93r7ygkg&dl=0'); /* 替换为你的图片URL */
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+    /* 为内容添加半透明背景，增强可读性 */
+    .unity-container, #walletModal .modal-content, #connectedWallet {
+      background-color: rgba(26, 27, 38, 0.9); /* 与现有背景色相同但带透明度 */
+    }
+  </style>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.57.0/lib/index.iife.min.js"></script>
