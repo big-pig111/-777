@@ -73,9 +73,7 @@
 
   </head>
   <body>
-    <!-- 在body标签内添加以下内容 -->
-<!-- 开始游戏遮罩层 -->
-<body>
+    <body>
   <!-- 全屏背景图片 -->
   <div class="fixed inset-0 z-0">
     <img src="未命名图片 (1).jpg" alt="" class="w-full h-full object-cover object-center" />
@@ -231,6 +229,36 @@
     // 其他原有钱包相关函数保持不变...
   </script>
 </body>
+    <!-- 全屏背景图片 (位于最底层) -->
+<div class="fixed inset-0 z-0">
+    <img src="未命名图片 (1).jpg" alt="" 
+         class="w-full h-full object-cover object-center" />
+    <!-- 半透明遮罩层，可调整透明度 -->
+    <div class="absolute inset-0 bg-dark/40"></div>
+</div>
+    <button id="connectWalletBtn" class="fixed top-6 right-6 z-50 flex items-center space-x-2 bg-dark-light hover:bg-dark-light/80 px-4 py-2 rounded-full border border-white/10 transition-all hover:shadow-lg hover:shadow-primary/20 text-text-light font-medium">
+      <i class="fa fa-wallet text-primary"></i>
+      <span id="walletStatus">Connect Wallet</span>
+    </button>
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"> </div>
+      <div id="unity-footer">
+        <div id="unity-webgl-logo"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">Click to fullscreen🔜</div>
+        <div id="unity-build-title">ca:：<a href="000000" target="_blank">0000000000000000000000000000000000000000000000000000000000000000000</a> </div>
+      </div>
+      <div><a href="0000000000000000" target="_blank">Click to visit Four.meme</a></div>    
+    </div>
+    <script>
+
       var container = document.querySelector("#unity-container");
       var canvas = document.querySelector("#unity-canvas");
       var loadingBar = document.querySelector("#unity-loading-bar");
