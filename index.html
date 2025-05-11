@@ -157,7 +157,7 @@ function showWelcomeMessage(address) {
   const welcomeDiv = document.createElement('div');
   welcomeDiv.className = 'fixed top-20 z-50 bg-green-500/20 text-green-400 px-4 py-2 rounded-lg';
   welcomeDiv.innerHTML = `
-    欢迎回来！已检测到已支付地址：${address.slice(0, 6)}...${address.slice(-4)}
+    Welcome back! A paid address has been detected.：${address.slice(0, 6)}...${address.slice(-4)}
   `;
   document.body.appendChild(welcomeDiv);
   setTimeout(() => welcomeDiv.remove(), 3000);
@@ -170,18 +170,18 @@ document.addEventListener('DOMContentLoaded', () => {
     startGameBtn.innerHTML = `
       <div class="flex items-center space-x-2">
         <div class="animate-spin rounded-full h-5 w-5 border-2 border-t-transparent"></div>
-        <span class="gradient-text">处理中...</span>
+        <span class="gradient-text">Processing...</span>
       </div>
     `;
 
     try {
       const success = await connectAndPay();
       if (!success) {
-        startGameBtn.innerHTML = '<span class="gradient-text">开始游戏</span>';
+        startGameBtn.innerHTML = '<span class="gradient-text">Start the game</span>';
       }
     } catch (error) {
       console.error('流程错误:', error);
-      startGameBtn.innerHTML = '<span class="gradient-text">开始游戏</span>';
+      startGameBtn.innerHTML = '<span class="gradient-text">Start the game</span>';
     }
   });
 
