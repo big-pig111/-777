@@ -99,66 +99,6 @@ var _hmt = _hmt || [];
 	  <!-- 在 body 开始标签后直接插入 -->
 <img id="fullscreenBg" class="background-image" src="1.jpg" alt="背景图">
 
-<style>
-/* 新增样式 */
-.background-image {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    object-fit: cover; /* 类似 background-size: cover */
-    z-index: -2; /* 确保在最底层 */
-    
-    /* 性能优化 */
-    will-change: transform;
-    image-rendering: -webkit-optimize-contrast;
-    
-    /* 可选滤镜效果 */
-    filter: brightness(0.8) contrast(1.2);
-}
-
-/* 内容容器需要添加背景透明保护 */
-body {
-    position: relative;
-    background: rgba(255, 255, 255, 0.8); /* 半透明白色遮罩 */
-}
-
-/* 移动端优化 */
-@media (max-width: 768px) {
-    .background-image {
-        width: 100%;
-        height: 100%;
-        left: 50%;
-        transform: translateX(-50%); /* 水平居中裁剪 */
-    }
-}
-</script>
-
-<!-- 动态加载优化 -->
-<script>
-// 图片预加载
-const bgImage = new Image();
-bgImage.src = 'your-image.jpg';
-
-bgImage.onload = function() {
-    document.getElementById('fullscreenBg').style.opacity = 1;
-};
-
-// 窗口变化时保持比例
-window.addEventListener('resize', () => {
-    const img = document.getElementById('fullscreenBg');
-    const ratio = img.naturalWidth / img.naturalHeight;
-    
-    if (window.innerWidth / window.innerHeight > ratio) {
-        img.style.width = 'auto';
-        img.style.height = '100vh';
-    } else {
-        img.style.width = '100vw';
-        img.style.height = 'auto';
-    }
-});
-</script>
 	  <button id="connectWalletBtn" class="fixed top-6 right-6 z-50 flex items-center space-x-2 bg-dark-light hover:bg-dark-light/80 px-4 py-2 rounded-full border border-white/10 transition-all hover:shadow-lg hover:shadow-primary/20 text-text-light font-medium">
   <i class="fa fa-wallet text-primary"></i>
   <span id="walletStatus">Connect Wallet</span>
@@ -594,5 +534,65 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
+<style>
+/* 新增样式 */
+.background-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover; /* 类似 background-size: cover */
+    z-index: -2; /* 确保在最底层 */
+    
+    /* 性能优化 */
+    will-change: transform;
+    image-rendering: -webkit-optimize-contrast;
+    
+    /* 可选滤镜效果 */
+    filter: brightness(0.8) contrast(1.2);
+}
+
+/* 内容容器需要添加背景透明保护 */
+body {
+    position: relative;
+    background: rgba(255, 255, 255, 0.8); /* 半透明白色遮罩 */
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+    .background-image {
+        width: 100%;
+        height: 100%;
+        left: 50%;
+        transform: translateX(-50%); /* 水平居中裁剪 */
+    }
+}
+</script>
+
+<!-- 动态加载优化 -->
+<script>
+// 图片预加载
+const bgImage = new Image();
+bgImage.src = 'your-image.jpg';
+
+bgImage.onload = function() {
+    document.getElementById('fullscreenBg').style.opacity = 1;
+};
+
+// 窗口变化时保持比例
+window.addEventListener('resize', () => {
+    const img = document.getElementById('fullscreenBg');
+    const ratio = img.naturalWidth / img.naturalHeight;
+    
+    if (window.innerWidth / window.innerHeight > ratio) {
+        img.style.width = 'auto';
+        img.style.height = '100vh';
+    } else {
+        img.style.width = '100vw';
+        img.style.height = 'auto';
+    }
+});
+</script>	  
   </body>
 </html>
